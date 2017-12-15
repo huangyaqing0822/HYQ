@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.NoticeDao">
+	<resultMap type="com.lxit.crmsystem.entity.Notice" id="NoticMapper">
+		<id property="noticeId" column="n_id"/>
+		<result property="noticeTitle" column="n_title"/>
+		<result property="noticeReleaseDate" column="n_releaseDate"/>
+		<result property="noticeReleaseName" column="n_releaseName"/>
+		<result property="noticeContent" column="n_content"/>
+		<result property="noticeCreatetime" column="n_createtime"/>
+		<result property="noticeUpdateTime" column="n_updateTime"/>
+		<result property="noticeConding" column="n_conding"/>
+		<result property="noticeGenreId" column="n_genreId"/>
+		<result property="staffName" column="staffName"/>
+	</resultMap>
+	
+	<select id="listNoticeSelect" resultMap="NoticMapper" parameterType="Map">
+		select n.n_id as noticeId,n.n_title AS noticeTitle,n.n_releaseDate AS noticeReleaseDate,n.n_content AS noticeContent,n.n_releaseName AS noticeReleaseName,s.s_name AS staffName FROM notice n INNER JOIN staff s ON n.n_releaseName=s.s_id
+		<if test="noticeTitle!=null and noticeTitle!=''">
+			AND n.n_title like #{noticeTitle}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	
+	<select id="notiCount" resultType="int" parameterType="Map">
+		select COUNT(1) FROM notice n INNER JOIN staff s ON n.n_releaseName=s.s_id
+		<if test="noticeTitle!=null and noticeTitle!=''">
+			AND n.n_title like #{noticeTitle}
+		</if>
+	</select>
+	
+	<insert id="insertNote" parameterType="com.lxit.crmsystem.entity.Notice">
+		INSERT INTO notice (n_title,n_releaseDate,n_releaseName,n_content,n_createtime,n_updateTime,n_conding,n_genreId) VALUES (#{noticeTitle},#{noticeReleaseDate},#{noticeReleaseName},#{noticeContent},#{noticeCreatetime},#{noticeUpdateTime},#{noticeConding},#{noticeGenreId});
+	</insert>
+	
+	<delete id="deleteNote" parameterType="int">
+		DELETE FROM notice WHERE n_id=#{noticeId};
+	</delete>
+	
+	<select id="listOne" resultMap="NoticMapper" parameterType="int">
+		<!-- select * from notice where n_id = #{noticeId}; -->
+		select s.s_name as staffName,n.n_id as noticeId,n.n_title as noticeTitle,n.n_content as noticeContent,n.n_conding as noticeConding,n.n_genreId as noticeGenreId,n.n_releaseName as noticeReleaseName from notice n INNER JOIN staff s ON n.n_releaseName=s.s_id where n_id =  #{noticeId};
+	</select>
+	
+	<update id="updateNote" parameterType="com.lxit.crmsystem.entity.Notice">
+		UPDATE notice SET 
+		n_title=#{noticeTitle},n_genreId=#{noticeGenreId},n_content=#{noticeContent}
+		where n_id=#{noticeId}
+	</update>
+</mapper>

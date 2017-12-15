@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.MarketDao">
+  <resultMap type="com.lxit.crmsystem.entity.Market" id="markerMap">
+     <id property="marketId" column="m_id" />
+     <result property="marketCoding" column="m_coding" />
+     <result property="marketName" column="m_name" />
+     <result property="marketDate" column="m_data" />
+     <result property="marketState" column="m_state" />
+     <result property="marketContent" column="m_content" />
+     <result property="marketUpdateDate" column="m_updateTime" />
+     <result property="marketCreateDate" column="m_createTime" />
+     <result property="marketOperatorId" column="m_operatorId" />
+     <result property="marketWaithandleId" column="m_waithandleId" />
+     <result property="marketUpdateSid" column="m_updateSid" />
+  </resultMap>
+  
+  <resultMap type="com.lxit.crmsystem.vo.Markets" id="marketsMap">
+     <id property="marketId" column="m_id" />
+     <result property="marketCoding" column="m_coding" />
+     <result property="marketName" column="m_name" />
+     <result property="marketDate" column="m_data" />
+     <result property="marketStateValue" column="m_stateValue" />
+     <result property="marketContent" column="m_content" />
+     <result property="marketUpdateDate" column="m_updateTime" />
+     <result property="marketCreateDate" column="m_createTime" />
+     <result property="marketOperatorName" column="m_operatorName" />
+     <result property="marketWaithandleName" column="m_waithandleName" />
+     <result property="marketUpdateSid" column="m_updateSid" />
+  </resultMap>
+  
+  <select id="listMarket" resultMap="markerMap">
+      select * from market
+  </select>
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+      select count(1) from market where 1=1
+      <if test="array[0] !=null and array[0] !='' ">
+          and m_data like concat('%',#{array[0]},'%')
+      </if>
+      <if test="array[1] !=0 ">
+          and m_operatorId=#{array[1]}
+      </if>
+      
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="marketsMap">
+     select m.m_id,m.m_coding,m.m_content,m.m_name,m.m_data,m.m_updateTime,s2.s_name AS marketOperatorName,
+	  (SELECT d.data_value FROM datadictionary d WHERE d.data_id = m.m_state) marketStateValue ,
+	  (SELECT s.s_name from staff s WHERE s.d_id=m.m_waithandleId ) marketWaithandleName
+	  FROM market m INNER JOIN staff s2 ON s2.s_id=m.m_operatorId 
+	  where 1=1 
+	  and m.m_operatorId=#{marketId} 
+	  <if test="date != null and date != '' ">
+	     and m.m_data like concat('%',#{date},'%')
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+
+  </select>
+
+  <select id="queryById" resultMap="markerMap" parameterType="int">
+      select * from market where m_id=#{0}
+  </select>
+  
+  <insert id="addMarket" parameterType="com.lxit.crmsystem.entity.Market">
+      insert into market(m_coding,m_name,m_data,m_state,m_content,m_createTime,m_operatorId) values
+      (#{marketCoding},#{marketName},#{marketDate},#{marketState},#{marketContent},
+      #{marketCreateDate},#{marketOperatorId})
+  </insert>
+      
+  <delete id="delMarket" parameterType="int">
+       delete from market where m_id=#{0}
+  </delete>
+  
+  <update id="updateMarket" parameterType="com.lxit.crmsystem.entity.Market">
+      update market set m_name=#{marketName},m_data=#{marketDate},m_content=#{marketContent}
+      where m_id=#{marketId}
+  </update>
+  
+ 
+  
+</mapper>

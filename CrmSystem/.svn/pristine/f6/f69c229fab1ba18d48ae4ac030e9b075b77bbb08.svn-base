@@ -1,0 +1,436 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>组织结构</title>
+
+<style type="text/css">
+.dialog-button {
+	text-align: center;
+}
+
+.textbox {
+	height: 22px;
+	padding: 0 2px;
+}
+</style>
+</head>
+<body>
+	<table id="tab_department_LHX">
+
+	</table>
+	<div id="div_department">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true"
+			onclick="indexTime.add()">添加</a> <a href="#"
+			class="easyui-linkbutton" iconCls="icon-edit" plain="true"
+			onclick="indexTime.updat()">修改</a> <a href="#"
+			class="easyui-linkbutton" iconCls="icon-remove" plain="true"
+			onclick="indexTime.del()">删除</a> 
+	</div>
+	<div id="divDepartMentManager">
+		角色名称查询：<input type="text" class="easyui-textbox" id="sss"
+			name="sss" /> <a href="#" class="easyui-linkbutton"
+			iconCls="icon-search" id="seachaa" onclick="indexTime.seachaaS()">查询</a>
+	</div>
+	<form id="tab_department_LHX_endit"
+		style="margin: 0; padding: 5px 0 0 24px; color: #333;">
+		系统管理>>组织结构 >> 修改组织结构
+		<table>
+			<tr>
+				<td></td>
+				<td><input type="hidden" id="idTui" disabled="false" name="idTui"
+					class="textbox" style="height: 23px;"></td>
+			</tr>
+			<tr>
+				<td>组织编码:</td>
+				<td><input type="text" id="DrugName" name="DrugName" disabled="false" class="textbox"
+					style="height: 23px;"></td>
+			</tr>
+				<tr>
+				<td>组织简称:</td>
+				<td><input type="text" id="tuData" name="tuData"  class="textbox"
+					style="height: 23px;"></td>
+			</tr>
+			</tr>
+				<tr>
+				<td>组织全称:</td>
+				<td><input type="text" id="departName" name="departName" class="textbox"
+					style="height: 23px;"></td>
+			</tr>
+			<tr>
+				<td>所属部门:</td>
+				<td><input id="bumeng_id" name="bumeng_id" style="width: 170px;"
+					editable="false" data-options="required:'true'" type="text"
+					class="easyui-textbox" /></td>
+			</tr>
+			<tr>
+				<td>部门简介:</td>
+				<td><textarea id="departmentIntroudpat" editable="false"
+						data-options="validType:'integer',required:'true'"
+						name="departmentIntroudpat" class="textbox" rows="7" /></td>
+			</tr>
+			<tr>
+				<td>备注信息:</td>
+				<td><textarea id="departmentRemarkupdat" editable="false"
+						data-options="valLidType:'integer',required:'true'"
+						name="departmentRemarkupdat" class="textbox" rows="7" /></td>
+			</tr>
+		</table>
+	</form>
+	<form id="Department_lhx_adds"
+		style="margin: 0; padding: 5px 0 0 24px; color: #333;">
+		系统管理>>组织结构 >> 增加组织结构
+		<table>
+			<tr>
+				<td>组织简称:</td>
+				<td><input type="text" id="departmentEasyNameS" name="departmentEasyNameS" class="textbox" style="height: 23px;" /></td>
+			</tr>
+			<tr>
+				<td>组织全称</td>
+				<td><input type="text" id="departmentFallNames" name="departmentFallNames" class="textbox" style="height: 23px;" /></td>
+			</tr>
+			<tr>
+			<tr>
+				<td>所属部门:</td>
+				<td><input id="departmentName" name="departmentName" style="width: 170px;"
+					editable="false" data-options="required:'true'" type="text"
+					class="easyui-textbox" /></td>
+			</tr>
+			</tr>
+			<tr>
+				<td>部门简介:</td>
+				<td><textarea id="departmentIntro" editable="false"
+						data-options="validType:'integer',required:'true'"
+						name="departmentRemark" class="textbox" rows="7" /></td>
+			</tr>
+			<tr>
+				<td>备注信息:</td>
+				<td><textarea id="departmentRemark" editable="false"
+						data-options="valLidType:'integer',required:'true'"
+						name="departmentRemark" class="textbox" rows="7" /></td>
+			</tr>
+		</table>
+	</form>
+
+
+	<script type="text/javascript">
+		$(function() {
+			$.extend($.fn.validatebox.defaults.rules, {
+				integer : {// 验证整数  
+					validator : function(value) {
+						return /^[+]?[1-9]+\d*$/i.test(value);
+					},
+					message : '请输入整数'
+				},
+				CHS : { //验证只能输入中文
+					validator : function(value) {
+						return /^[\u0391-\uFFE5]+$/.test(value);
+					},
+					message : '只能输入汉字'
+				},
+				english : {// 验证英语  
+					message : '请输入英文'
+				},
+			});
+
+			$('input[name="departmentFallNames"]').validatebox({
+				required : true,
+				CHS : { //验证只能输入中文
+					validator : function(value) {
+						return /^[\u0391-\uFFE5]+$/.test(value);
+					},
+					message : '只能输入汉字'
+				},
+			});
+			$('input[name="roleCoding"]').validatebox({
+				required : true,
+				integer : {// 验证整数  
+					validator : function(value) {
+						return /^[+]?[1-9]+\d*$/i.test(value);
+					},
+					message : '请输入整数'
+				},
+			});
+			$('input[name="DrugName"]').validatebox({
+				required : true,
+				integer : {// 验证整数  
+					validator : function(value) {
+						return /^[+]?[1-9]+\d*$/i.test(value);
+					},
+					message : '请输入整数'
+				},
+			});
+			$('input[name="departmentRemark"]').validatebox({
+				required : true,
+				integer : {// 验证整数  
+					validator : function(value) {
+						return /^[+]?[1-9]+\d*$/i.test(value);
+					},
+					message : '请输入整数'
+				},
+			});
+			/* $("#tuData").datebox({
+
+			}) */
+
+			$('#tab_department_LHX').datagrid({
+				url : 'http://localhost:8080/CrmSystem/departmentAction/jsonDepartment2',
+				title : "组织管理",
+				toolbar : '#div_department,#divDepartMentManager',
+				fitColumns : true,//使列自动展开/收缩到合适的DataGrid宽度。
+				striped : true,//是否显示斑马线效果。
+				rownumbers : true,//如果为true，则显示一个行号列。
+				border : false,//是否有边框
+			/*  	pagination : true,//如果为true，则在DataGrid控件底部显示分页工具栏。
+				pageSize : 15,//在设置分页属性的时候初始化页面大小
+				pageList : [ 15, 30, 45 ],//在设置分页属性的时候 初始化页面大小选择列表。
+				pageNumber : 1,//在设置分页属性的时候初始化页码。  */
+				height : 600,//高度
+				columns : [ [ {
+					field : 'departmentId',
+					title : 'ss号',
+					width : 100,
+					checkbox : true,
+				}, {
+					field : 'departmentFallName',
+					title : '名称',
+					width : 100,
+				//checkbox : true,
+				}, {
+					field : 'departmentUpdateTime',
+					title : '最后修改时间',
+					width : 100
+				//宽度
+				}, {
+					field : 'staffName',
+					title : '操作人',
+					width : 100,
+				}, {
+					field : 'departmentRemark',
+					title : '备注说明',
+					width : 100,
+				} ] ],
+			});
+			//增加
+			$("#Department_lhx_adds").dialog(
+				{
+					width : 300,
+					height : 250,
+					title : "增加角色",
+					modal : true,
+					closed : true,
+					buttons : [
+						{
+							text : "提交",
+							iconCls : "icon-add",
+							handler : function() {
+								if ($("#Department_lhx_adds").form("validate")) {
+									$.ajax({
+												url : "http://localhost:8080/CrmSystem/departmentAction/insertDepartments",
+												type : "post",
+												data : {
+													departmentEasyName:$("#departmentEasyNameS").val(),
+													departmentFallName:$("#departmentFallNames").val(),
+													departmentNid:$("#departmentName").val(),
+													departmentIntro:$("#departmentIntro").val(),
+													departmentRemark:$("#departmentRemark").val(),
+												},
+												success : function(data) {
+													$.messager.progress("close");
+													if (data == "true") {
+														$.messager.show({
+																	title : '提示',
+																	msg : '角色增加成功',
+																	timeout : 5000,
+																	showType : 'slide'
+																});
+														$("#Department_lhx_adds").dialog("close").form("reset");
+														$("#tab_department_LHX").datagrid("reload");
+													} else {
+														$.messager.alert("添加失败","未知名的错误","warning");
+													};
+												},
+											})
+								}
+							}
+						},
+						{
+							text : "取消",
+							iconCls : "icon-redo",
+							handler : function() {
+								$("#Department_lhx_adds").dialog("close").form("reset");
+							},
+						} ]
+				})
+			//修改
+			$("#tab_department_LHX_endit").dialog({
+								width : 300,
+								height : 250,
+								title : "修改角色信息",
+								modal : true,
+								closed : true,
+								buttons : [
+										{
+											text : "提交",
+											iconCls : "icon-add",
+											handler : function() {
+												if ($("#tab_department_LHX_endit").form("validate")) {
+													$.ajax({
+														url : "http://localhost:8080/CrmSystem/departmentAction/updateDepartment",
+														type : "post",
+														data : {
+															departmentId : $("#idTui").val(),//组织id
+															departmentEasyName :$("#tuData").val(),//组织简称
+															departmentFallName:$("#departName").val(),//组织全名
+															departmentNid : $("#bumeng_id").val(),//所属部门id
+															departmentIntro : $("#departmentIntroudpat").val(),//部门简介
+															departmentRemark:$("#departmentRemarkupdat").val()//部门备注
+														},
+													/* 	beforeSend : function() {
+															$.messager.progress({
+																		text : "正在修改中。。。。",
+																	});
+														},  */
+														success : function(data,response,status) {
+															/* $.message.progress("close"); */
+															if (data == "true") {
+																$.messager.show({
+																			title : '提示',
+																			msg : '修改成功',
+																			timeout : 5000,
+																			showType : 'slide'
+																		});
+																$("#tab_department_LHX_endit").dialog("close").form("reset");
+																$("#tab_department_LHX").datagrid("reload");
+															} else {
+																$.messager.alert("修改失败","未知名的错误","warning");
+															};
+														},
+													})
+										}
+											}
+										},
+										{
+											text : "取消",
+											iconCls : "icon-redo",
+											handler : function() {
+												$("#tab_department_LHX_endit").dialog("close").form("reset");
+											},
+										} ]
+							})
+
+			indexTime = {
+				del : function() {
+					var rows = $("#tab_department_LHX").datagrid("getSelections");
+					if (rows.length > 0) {
+						$.messager.confirm("确认要删除?","你真的要删除吗？",
+						function(flag) {
+							if (flag) {
+								$.ajax({
+										url : "http://localhost:8080/CrmSystem/departmentAction/deleteDepartments",
+										type : "post",
+										data : {
+											departmentId:rows[0].departmentId,
+										},
+										success : function(result) {
+											if (result == "true") {
+												$.messager.show({
+													title : "刪除成功"
+														});
+												$("#tab_department_LHX").datagrid("reload");
+											}
+										}
+									})
+						}
+					});
+					} else {
+						$.messager.alert("警告", "至少要选择一条记录删除", "warning");
+					}
+				},
+				//修改
+				updat : function() {
+					var rows = $("#tab_department_LHX").datagrid("getSelections");
+					if (rows.length > 1) {
+						$.messager.alert("警告操作", "编辑记录只能选定一条数据", "warning");
+					} else if (rows.length == 1) {
+						$.ajax({
+							url : "http://localhost:8080/CrmSystem/departmentAction/selectDepartment",
+							data : {
+								departmentId : rows[0].departmentId,
+							},
+							type : "post",
+							success : function(result) {
+								alert(result[0].departmentId)
+								if (result) {
+									$("#tab_department_LHX_endit").form("load", {
+										idTui : result[0].departmentId,//
+										DrugName : result[0].departmentConding,//
+										tuData : result[0].departmentEasyName,//
+										departName:result[0].departmentFallName,
+										bumeng_id : result[0].departmentNid,//
+										departmentIntroudpat:result[0].departmentIntro,
+										departmentRemarkupdat:result[0].departmentRemark
+										
+									}).dialog("open");
+								}
+							},
+						})
+					} else if (rows.length == 0) {
+						$.messager.alert("警告操作", "编辑记录至少要选定一条数据", "warning");
+					}
+					;
+				},
+				add : function() {
+					$("#Department_lhx_adds").dialog("open");
+					$('input[name="departmentEasyNameS"]').focus();
+				},
+				raod : function() {
+					$('#tab_department_LHX').datagrid('reload');
+				},
+				sedd : function() {
+					$('#tab_department_LHX').datagrid('unselectAll');
+				},
+				seachaaS:function(){
+					$('#tab_department_LHX').datagrid('load',{
+						
+						departmentFallName:$("#sss").val()
+					})
+				}
+			}
+			$('#bumeng_id').combobox({
+				url : 'http://localhost:8080/CrmSystem/departmentAction/jsonDepartment',
+				valueField : 'departmentId',
+				textField : 'departmentFallName',
+				onClick : function(record) {
+					$("#tab_department_LHX_endit").form('load', {
+						departmentIntroudpat : record.sj
+					})
+				}
+			});
+			$('#departmentName').combobox({
+				url : 'http://localhost:8080/CrmSystem/departmentAction/jsonDepartment',
+				valueField : 'departmentId',
+				textField : 'departmentFallName',
+				onClick : function(record) {
+					$("#Department_lhx_adds").form('load', {
+						departmentRemark : record.sj
+					})
+				}
+			});
+
+			$('#kehuid_add').combobox({
+				url : '',
+				valueField : 'id',
+				textField : 'text',
+
+			});
+		});
+
+		
+
+	</script>
+</body>
+</html>

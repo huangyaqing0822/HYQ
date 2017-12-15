@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ViewDao">
+	<select id="histogramone" resultType="com.lxit.crmsystem.vo.HistogramOneVo" parameterType="java.util.Map">
+	<![CDATA[
+		SELECT month(client_createTime) AS "month",
+		(SELECT COUNT(1) FROM client WHERE client_type = 10 AND month(client_createTime) = month(c1.client_createTime)) "sum1",
+		(SELECT COUNT(1) FROM client WHERE client_type = 11 AND month(client_createTime) = month(c1.client_createTime)) "sum2",
+		(SELECT COUNT(1) FROM client WHERE client_type = 12 AND month(client_createTime) = month(c1.client_createTime)) "sum3",
+		(SELECT COUNT(1) FROM client WHERE client_type = 13 AND month(client_createTime) = month(c1.client_createTime)) "sum4",
+		((SELECT COUNT(1) FROM client WHERE month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearNew})-
+		(SELECT COUNT(1) FROM client WHERE month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearOld}))
+		/(SELECT COUNT(1) FROM client WHERE month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearOld}) AS "tonbi",
+		(SELECT COUNT(1) FROM client WHERE month(client_createTime) = month(c1.client_createTime))/
+		IF(year(date_add(c1.client_createTime,interval -1 month))<#{yearNew},(SELECT 	count(1)
+		FROM client where year(client_createTime)=#{yearOld}  AND month(client_createTime)=#{shier}),(SELECT COUNT(1) FROM client WHERE year(c1.client_createTime)= year(date_add(c1.client_createTime,interval -1 month)) 
+		AND month(client_createTime) = month(date_add(c1.client_createTime,interval -1 month))
+		)) AS "huanbi"
+		FROM client c1 where year(client_createTime)=#{yearNew}
+		GROUP BY month(client_createTime);
+		]]>
+	</select>
+	<select id="histogramtwo" resultType="com.lxit.crmsystem.vo.HistogramOneVo" parameterType="java.util.Map">
+	<![CDATA[
+		SELECT month(client_createTime) AS "month",
+		(SELECT COUNT(1) FROM client WHERE client_state = 28 AND month(client_createTime) = month(c1.client_createTime)) AS "sum1",
+		(SELECT COUNT(1) FROM client WHERE client_state = 27 AND month(client_createTime) = month(c1.client_createTime)) AS "sum2",
+		((SELECT COUNT(1) FROM client WHERE client_state = 28 AND month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearNew})-
+		(SELECT COUNT(1) FROM client WHERE client_state = 28 AND month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearOld}))
+		/(SELECT COUNT(1) FROM client WHERE client_state = 28 AND month(client_createTime) = month(c1.client_createTime) AND year(client_createTime)=#{yearOld}) AS "tonbi",
+		
+		(SELECT COUNT(1) FROM client WHERE client_state = 28 AND month(client_createTime) = month(c1.client_createTime))/
+		IF(year(date_add(c1.client_createTime,interval -1 month))<#{yearNew},(SELECT 	count(1)
+		FROM client where client_state = 28 AND year(client_createTime)='2016' AND month(client_createTime)=#{shier}),(SELECT COUNT(1) FROM client WHERE client_state = 28 AND year(c1.client_createTime)= year(date_add(c1.client_createTime,interval -1 month)) 
+		AND month(client_createTime) = month(date_add(c1.client_createTime,interval -1 month))
+		)) AS "huanbi"
+		FROM client c1 where year(client_createTime)=#{yearNew}
+		GROUP BY month(client_createTime);
+		]]>
+	</select>
+	
+	<select id="histogramthree" resultType="com.lxit.crmsystem.vo.HistogramOneVo" parameterType="java.util.Map">
+	<![CDATA[
+		SELECT month(serve_createTime) AS "month",
+		(SELECT COUNT(1) FROM serve WHERE serve_type = 29 AND month(serve_createTime) = month(c1.serve_createTime)) "sum1",
+		(SELECT COUNT(1) FROM serve WHERE serve_type = 30 AND month(serve_createTime) = month(c1.serve_createTime)) "sum2",
+		(SELECT COUNT(1) FROM serve WHERE serve_type = 31 AND month(serve_createTime) = month(c1.serve_createTime)) "sum3",
+		(SELECT COUNT(1) FROM serve WHERE serve_type = 32 AND month(serve_createTime) = month(c1.serve_createTime)) "sum4",
+		((SELECT COUNT(1) FROM serve WHERE month(serve_createTime) = month(c1.serve_createTime) AND year(serve_createTime)=#{yearNew})-
+		(SELECT COUNT(1) FROM serve WHERE month(serve_createTime) = month(c1.serve_createTime) AND year(serve_createTime)=#{yearOld}))
+		/(SELECT COUNT(1) FROM serve WHERE  month(serve_createTime) = month(c1.serve_createTime) AND year(serve_createTime)=#{yearOld}) AS "tonbi",
+		(SELECT COUNT(1) FROM serve WHERE month(serve_createTime) = month(c1.serve_createTime))/
+		IF(year(date_add(c1.serve_createTime,interval -1 month))<#{yearNew},(SELECT 	count(1)
+		FROM serve where year(serve_createTime)=#{yearOld} AND month(serve_createTime)=#{shier}),(SELECT COUNT(1) FROM serve WHERE year(c1.serve_createTime)= year(date_add(c1.serve_createTime,interval -1 month)) 
+		AND month(serve_createTime) = month(date_add(c1.serve_createTime,interval -1 month))
+		)) AS "huanbi"
+		FROM serve c1 where year(c1.serve_createTime)=#{yearNew}
+		GROUP BY month(c1.serve_createTime);
+		]]>
+	</select>
+	
+	<select id="histogramfour"  resultType="com.lxit.crmsystem.vo.HistogramOneVo" parameterType="java.util.Map">
+		<![CDATA[
+			SELECT 
+			month(i1.indent_createTime) AS "month",
+				(SELECT SUM(i2.indent_countprice) FROM indent i2 ,client c1 WHERE c1.client_id = i2.indent_client_id AND c1.client_type = 10 AND month(i1.indent_createTime) = month(i2.indent_createTime)) "sum1",
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 ,client c1 WHERE c1.client_id = i2.indent_client_id AND c1.client_type = 11 AND month(i1.indent_createTime) = month(i2.indent_createTime)) "sum2",
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 ,client c1 WHERE c1.client_id = i2.indent_client_id AND c1.client_type = 12 AND month(i1.indent_createTime) = month(i2.indent_createTime)) "sum3",
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 ,client c1 WHERE c1.client_id = i2.indent_client_id AND c1.client_type = 13 AND month(i1.indent_createTime) = month(i2.indent_createTime)) "sum4",
+			
+			((SELECT SUM(i2.indent_countprice) FROM indent i2 WHERE month(i2.indent_createTime) = month(i1.indent_createTime) AND year(i2.indent_createTime)=#{yearNew})-
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 WHERE month(i2.indent_createTime) = month(i1.indent_createTime) AND year(i2.indent_createTime)=#{yearOld}))
+			/(SELECT SUM(i2.indent_countprice) FROM indent i2 WHERE  month(i2.indent_createTime) = month(i1.indent_createTime) AND year(i2.indent_createTime)=#{yearOld}) AS "tonbi"
+			,
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 WHERE month(i2.indent_createTime) = month(i1.indent_createTime))/
+			IF(year(date_add(i1.indent_createTime,interval -1 month))<#{yearNew},(SELECT 	SUM(i2.indent_countprice)
+			FROM indent i2 where year(i2.indent_createTime)=#{yearOld} AND month(i2.indent_createTime)=#{shier}),
+			(SELECT SUM(i2.indent_countprice) FROM indent i2 WHERE year(i1.indent_createTime)= year(date_add(i1.indent_createTime,interval -1 month)) 
+			AND month(i2.indent_createTime) = month(date_add(i1.indent_createTime,interval -1 month))
+			)) AS "huanbi"
+			
+			FROM indent i1 where year(i1.indent_createTime)=#{yearNew}
+			GROUP BY month(i1.indent_createTime);
+		]]>
+	</select>
+</mapper>
+

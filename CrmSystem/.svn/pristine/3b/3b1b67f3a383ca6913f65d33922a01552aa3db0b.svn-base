@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.TreeDao">
+	<resultMap type="Tree" id="TreeMapper">
+		<id property="id" column="id" />
+		<result property="text" column="text" />
+		<result property="state" column="state" />
+		<result property="iconCls" column="iconCls" />
+		<result property="url" column="url" />
+		<result property="nid" column="nid" />
+	</resultMap>
+
+	<select id="querys" resultMap="TreeMapper" parameterType="Map">
+		
+		SELECT
+				n1.*
+			FROM
+				staff_role s1,
+				role r1,
+				role_nav r2,
+				nav n1
+			WHERE
+				s1.r_id = r1.r_id
+			AND r1.r_id = r2.r_id
+			AND r2.nav_id = n1.id
+			AND s1.s_id = #{sid}
+		GROUP BY n1.id HAVING n1.nid = #{nid}
+		
+		
+	</select>
+
+</mapper>

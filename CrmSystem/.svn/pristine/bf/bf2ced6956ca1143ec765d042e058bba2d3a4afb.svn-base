@@ -1,0 +1,161 @@
+package com.lxit.crmsystem.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.lxit.crmsystem.dao.ClientDao;
+import com.lxit.crmsystem.entity.Client;
+import com.lxit.crmsystem.service.ClientService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.vo.ClientDevelopVo;
+import com.lxit.crmsystem.vo.Clients;
+import com.lxit.crmsystem.vo.ServeVo;
+
+@Service("clientService")
+public class ClientServiceImpl implements ClientService{
+	
+	@Autowired
+	ClientDao clientDao;
+
+	@Override
+	public int insert(Client client) {
+		return clientDao.insert(client);
+	}
+
+	@Override
+	public int delete(int clientId) {
+		return clientDao.delete(clientId);
+	}
+
+	@Override
+	public int update(Client client) {
+		return clientDao.update(client);
+	}
+
+	@Override
+	public Clients queryClientById(int clientId) {
+		return clientDao.queryClientById(clientId);
+	}
+	
+	//客户资源分页，模糊查询
+	@Override
+	public Pager<Clients> query(int pageIndex, int pageSize, int clientId,String likeName,String likeState) {
+		Pager<Clients> page = new Pager<>();
+		page.setPageIndex(pageIndex);
+		page.setPageSize(pageSize);
+		page.setSumCount(clientDao.getCount(clientId));
+		
+		Map<String, Object> map=new HashMap<>();
+		map.put("pageIndex", (pageIndex - 1) * pageSize);
+		map.put("pageSize", pageSize);
+		map.put("clientId", clientId);
+		
+		if(likeName!=null && likeName!=""){
+			map.put("likeName","%"+likeName+"%");
+		}else{
+			map.put("likeName",likeName);
+		}
+		if(likeState!=null && likeState!=""){
+			map.put("likeState",Integer.parseInt(likeState));
+		}else{
+			map.put("likeState",0);
+		}
+		
+		List<Clients> ClientsList=clientDao.query(map);
+		page.setData(ClientsList);
+		return page;
+	}
+
+
+	@Override
+	public List<Clients> queryClient(int clientId) {
+		Map<String, Object> map=new HashMap<>();
+		map.put("pageIndex", 0);
+		map.put("pageSize", 0);
+		map.put("likeState", 0);
+		map.put("clientId", clientId);
+		return clientDao.query(map);
+	}
+
+	////客户价值管理分页，模糊查询
+	@Override
+	public Pager<Clients> queryValue(int pageIndex, int pageSize, int clientId,String likeName,String likeType) {
+		Pager<Clients> page = new Pager<>();
+		page.setPageIndex(pageIndex);
+		page.setPageSize(pageSize);
+		page.setSumCount(clientDao.getCount(clientId));
+		Map<String, Object> map=new HashMap<>();
+		map.put("pageIndex", (pageIndex - 1) * pageSize);
+		map.put("pageSize", pageSize);
+		map.put("clientId", clientId);
+		
+		if(likeName!=null && likeName!=""){
+			map.put("likeName","%"+likeName+"%");
+		}else{
+			map.put("likeName",likeName);
+		}
+		if(likeType!=null && likeType!=""){
+			map.put("likeType",Integer.parseInt(likeType));
+		}else{
+			map.put("likeType",0);
+		}
+		
+		List<Clients> ClientsList=clientDao.queryValue(map);
+		page.setData(ClientsList);
+		return page;
+	}
+
+	@Override
+	public Clients queryValueById(int clientId) {
+		return clientDao.queryValueById(clientId);
+	}
+	
+	
+	
+	
+
+	@Override
+	public Pager<Clients> queryReputation(int pageIndex, int pageSize, int clientId,String likeName) {
+		Pager<Clients> page = new Pager<>();
+		page.setPageIndex(pageIndex);
+		page.setPageSize(pageSize);
+		page.setSumCount(clientDao.getCount(clientId));
+		Map<String, Object> map=new HashMap<>();
+		map.put("pageIndex", (pageIndex - 1) * pageSize);
+		map.put("pageSize", pageSize);
+		map.put("clientId", clientId);
+		
+		if(likeName!=null && likeName!=""){
+			map.put("likeName","%"+likeName+"%");
+		}else{
+			map.put("likeName",likeName);
+		}
+		
+		List<Clients> ClientsList=clientDao.queryReputation(map);
+		page.setData(ClientsList);
+		return page;
+	}
+
+	@Override
+	public Clients queryReputationById(int clientId) {
+		return clientDao.queryReputationById(clientId);
+	}
+
+	@Override
+	public int updateState(Client client) {
+		return clientDao.updateState(client);
+	}
+
+	
+	
+
+	
+	
+	
+}

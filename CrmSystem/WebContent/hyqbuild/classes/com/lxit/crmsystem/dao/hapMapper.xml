@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.HapDao">
+
+  <resultMap type="com.lxit.crmsystem.entity.Hap" id="hapMap">
+     <id property="hapId" column="hap_id" />
+     <result property="hapName" column="hap_name" />
+     <result property="hapType" column="hap_Type" />
+     <result property="hapCreateTime" column="hap_createTime" />
+     <result property="hapUpdateTime" column="hap_updateTime" />
+     <result property="hapSid" column="hap_s_id" />
+     <result property="hapUpdateSid" column="hap_updateSid" />
+     <result property="hap_conten" column="hap_conten" />
+     <result property="hap_remark" column="hap_remark" />
+     <result property="hap_code" column="hap_code" />
+     <result property="hap_staffId" column="hap_staffId" />
+  </resultMap>
+  <resultMap type="com.lxit.crmsystem.vo.HapVo" id="hapVoMap">
+     <id property="hapId" column="hap_id" />
+     <result property="hapName" column="hap_name" />
+     <result property="hapTypeValue" column="hapTypeValue" />
+     <result property="hapCreateTime" column="hap_createTime" />
+     <result property="hapUpdateTime" column="hap_updateTime" />
+     <result property="hapSName" column="hapSName" />
+     <result property="hapUpdateSName" column="hapUpdateSName" />
+     <result property="hap_conten" column="hap_conten" />
+     <result property="hap_remark" column="hap_remark" />
+     <result property="hap_code" column="hap_code" />
+  </resultMap>
+   <resultMap type="DataDictionary" id="DataDictionaryMapper">
+		<id property="dataId" column="data_id" />
+		<result property="dataCode" column="data_code" />
+		<result property="dataName" column="data_name" />
+		<result property="dataValue" column="data_value" />
+		<result property="dataCreateTime" column="data_createTime" />
+		<result property="dataUpdateTime" column="data_updateTime" />
+		<result property="dataSid" column="data_s_id" />
+	</resultMap>
+  
+    <select id="queryHapTypeValue" resultMap="DataDictionaryMapper">
+		SELECT * FROM datadictionary WHERE data_code = 'hap_type'
+	</select>
+	
+	<insert id="addHap" parameterType="com.lxit.crmsystem.entity.Hap">
+	    INSERT INTO hap (
+	       hap_name,
+	       hap_Type,
+	       hap_createTime,
+	       hap_updateTime,
+	       hap_s_id,
+	       hap_updateSid,
+	       hap_conten,
+	       hap_remark,
+	       hap_code) 
+	    values(
+	       #{hapName},
+	       #{hapType},
+	       now(),
+	       now(),
+	       #{hapSid},
+	       #{hapUpdateSid},
+	       #{hap_conten},
+	       #{hap_remark},
+	       #{hap_code}
+	    )
+	</insert>
+	
+	<select id="getById" resultMap="hapVoMap" parameterType="int">
+	      SELECT h.*,d.data_value AS hapTypeValue, s.s_name AS hapSName 
+	      FROM hap h,staff s,datadictionary d
+	      WHERE h.hap_s_id=s.s_id AND h.hap_Type=d.data_id and hap_id=#{0}
+      
+	</select>
+	
+	<update id="updateHap" parameterType="com.lxit.crmsystem.entity.Hap">
+	    update hap set 
+	       hap_updateSid=#{hapUpdateSid},
+	       hap_staffId=#{hap_staffId},
+	       hap_name=#{hapName},
+	       hap_updateTime=now(),
+	       hap_conten=#{hap_conten},
+	       hap_remark=#{hap_remark}
+	    where hap_id=#{hapId}
+	</update>
+  
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+        SELECT COUNT(1) 
+	    FROM hap h,staff s,datadictionary d
+	    WHERE h.hap_s_id=s.s_id AND h.hap_Type=d.data_id
+        <if test="array[0] !=null and array[0] !='' ">
+            and s.s_name like concat('%',#{array[0]},'%')
+        </if>
+      
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="hapVoMap">
+      SELECT h.*,d.data_value AS hapTypeValue, s.s_name AS hapSName 
+      FROM hap h,staff s,datadictionary d
+      WHERE h.hap_s_id=s.s_id AND h.hap_Type=d.data_id
+	  
+	  <if test="name != null and name != '' ">
+	     and s.s_name like concat('%',#{name},'%')
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+
+  </select>
+
+ 
+  
+</mapper>

@@ -1,0 +1,70 @@
+package com.lxit.crmsystem.vo;
+
+/**
+ * 合同视图
+ * 
+ * @author Administrator
+ *
+ */
+public class ViewContract {
+	private String dai;
+	private Integer id;
+	private String state;
+	private String time;
+	private String title;
+	private String type;
+
+	public String getDai() {
+		return dai;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public String getTime() {
+		return time;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setDai(String dai) {
+		this.dai = dai;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public void setTime(String time) {
+		this.time = time;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Override
+	public String toString() {
+		return "ViewContract [id=" + id + ", title=" + title + ", state=" + state + ", type=" + type + ", time=" + time
+				+ ", dai=" + dai + "]";
+	}
+}

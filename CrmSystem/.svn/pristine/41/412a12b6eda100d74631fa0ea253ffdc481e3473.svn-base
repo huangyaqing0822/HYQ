@@ -1,0 +1,70 @@
+package com.lxit.crmsystem.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.lxit.crmsystem.dao.ContractDao;
+import com.lxit.crmsystem.dao.StaffDao;
+import com.lxit.crmsystem.service.ContractService;
+import com.lxit.crmsystem.vo.Staffs;
+import com.lxit.crmsystem.vo.ViewContract;
+import com.lxit.crmsystem.vo.ViewIdentType;
+
+@Service
+public class ContractServiceImpl implements ContractService {
+
+	@Autowired
+	ContractDao cd;
+	@Autowired
+	StaffDao sd;
+
+	@Override
+	public List<ViewIdentType> queryType() {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("code", "CONTRACT_TYPE");
+		return cd.queryType(map);
+	}
+
+	@Override
+	public List<ViewIdentType> queryState() {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("code", "CONTRACT_STATE");
+		return cd.queryState(map);
+	}
+
+	@Override
+	public int insert(Map<String, Object> map) {
+		Staffs s = sd.queryBoss((int) map.get("sid"));
+		map.put("did", s == null ? ((Integer) map.get("sid")) : s.getStaffId());
+		return cd.addContract(map);
+	}
+
+	@Override
+	public Map<String, Object> contractQuery(Map<String, Object> map) {
+		List<ViewContract> rows = cd.contractQuery(map);
+		map.put("counts", "count");
+		int total = cd.contractQueryCount(map);
+		Map<String, Object> data = new HashMap<>();
+		data.put("rows", rows);
+		data.put("total", total);
+		return data;
+	}
+
+	@Override
+	public Map<String, Object> selectContract(Map<String, Object> map) {
+		List<ViewContract> rows = cd.selectContract(map);
+		map.put("counts", "count");
+		int total = cd.selectContractCount(map);
+		System.out.println("总条数为："+total);
+		Map<String, Object> data = new HashMap<>();
+		System.out.println("返回数据为："+rows.size());
+		data.put("rows", rows);
+		data.put("total", total);
+		return data;
+	}
+
+}

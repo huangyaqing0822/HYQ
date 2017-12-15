@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.RoleDao">
+	<resultMap type="com.lxit.crmsystem.entity.Role" id="RoleMapper">
+		<id property="roleId" column="r_id"/>
+		<result property="roleName" column="r_name"/>
+		<result property="roleCoding" column="r_coding"/>
+		<result property="departmentId" column="d_id"/>
+		<result property="roleRemark" column="r_remark"/>
+		<result property="roleUdatTime" column="r_updatTime"/>
+		<result property="roleUpdateSid" column="r_updateSid"/>
+		<result property="roleNid" column="r_nid"/>
+		<result property="departmentName" column="departmentName"/>
+		<result property="staffName" column="staffName"/>
+		<!--一对一的关系-->
+	<!-- 	<association property="department" javaType="com.lxit.crmsystem.entity.Department">
+			<id property="departmentId" column="d_id"/>
+			<result property="departmentFallName" column="d_fallName"/>
+			<result property="departmentConding" column="d_conding"/>
+			<result property="departmentEasyName" column="d_easyName"/>
+			<result property="departmentNid" column="d_nid"/>
+			<result property="departmentIntro" column="d_intro"/>
+			<result property="departmentRemark" column="d_remark"/>
+			<result property="departmentCreateTime" column="d_createTime"/>
+			<result property="departmentUpdateTime" column="d_UpdateTime"/>
+			<result property="departmentStandby" column="d_standby"/>
+			<result property="departmentUpdateSid" column="d_updateSid"/>
+		</association> -->
+	</resultMap>
+	
+	<select id="roleSelect" parameterType="Map" resultMap="RoleMapper">
+		SELECT r.r_id as roleId,s.s_name AS staffName,r.r_updateTime AS roleUdatTime,
+		d.d_id as departmentId,d.d_fallName as departmentName,r.r_name as roleName,r.r_remark as roleRemark,r.r_updateSid AS roleUpdateSid FROM role r,department d,staff s
+		WHERE r.d_id = d.d_id AND s.s_id = r.r_updateSid 
+		<if test="rname!=null and rname!=''">
+		 	AND r.r_name like #{rname}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	<select id="roleSelectCount2" parameterType="Map"  resultType="int">
+		SELECT COUNT(1) FROM role r,department d,staff s
+		WHERE r.d_id = d.d_id AND s.s_id = r.r_updateSid 
+		<if test="rname!=null and rname!=''">
+		 	AND r.r_name like #{rname}
+		</if>
+	</select>
+	
+	<select id="roleSelect1" parameterType="Map"  resultMap="RoleMapper">
+		SELECT r.r_id as roleId,s.s_name AS staffName,r.r_updateTime AS roleUdatTime,d.d_id as departmentId,d.d_fallName as departmentName,r.r_name as roleName,r.r_remark as roleRemark,r.r_updateSid AS roleUpdateSid FROM role r,department d,staff s
+		WHERE r.d_id = d.d_id AND s.s_id = r.r_updateSid AND d.d_id = #{did} LIMIT #{pageIndex},#{pageSize}
+	</select>
+	
+	<select id="roleSelectCount" parameterType="Map"  resultType="int">
+		SELECT COUNT(1) FROM role r,department d,staff s
+		WHERE r.d_id = d.d_id AND s.s_id = r.r_updateSid AND d.d_id = #{did}
+	</select>
+
+	<delete id="delRole" parameterType="int">
+		DELETE FROM role WHERE r_id=#{roleId}
+	</delete>
+	
+	<insert id="deleteRoleNav" parameterType="int">
+		DELETE FROM role_nav WHERE r_id=#{id}
+	</insert>
+	
+	<insert id="insertRoleNav" parameterType="Map">
+		INSERT INTO `crm`.`role_nav` (`r_id`, `nav_id`) VALUES 
+		<foreach collection="strArr" item="navId" separator=",">
+			(#{rid}, #{navId})
+		</foreach>
+	</insert>
+	
+	<insert id="insertRole" parameterType="com.lxit.crmsystem.entity.Role" useGeneratedKeys="true" keyProperty="roleId">
+		INSERT INTO role (r_name,r_coding,d_id,r_remark,r_updateTime,r_updateSid,r_nid) VALUES (#{roleName},#{roleCoding},#{departmentId},#{roleRemark},#{roleUdatTime},#{roleUpdateSid},#{roleNid});
+	</insert>
+	
+	<select id="roleSelectOne" resultMap="RoleMapper" parameterType="int">
+		SELECT r_id as roleId,r_updateTime as roleUdatTime,r_coding AS roleCoding,r_name AS roleName,d_id AS departmentId,r_remark AS roleRemark FROM role WHERE r_id=#{roleId};
+	</select>
+	
+	<update id="updateRole" parameterType="com.lxit.crmsystem.entity.Role">
+		UPDATE role SET
+		r_id = #{roleId},
+		r_name = #{roleName},
+		d_id = #{departmentId},
+		r_remark = #{roleRemark},
+		r_updateTime = #{roleUdatTime},
+		r_nid = #{roleNid}
+		where r_id = #{roleId};
+	</update>
+	
+	<select id="selectAll" resultMap="RoleMapper" >
+		SELECT * FROM role
+	</select>
+	
+</mapper>

@@ -1,0 +1,78 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Commonproblem;
+import com.lxit.crmsystem.service.CommonproblemService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.vo.ServeVo;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("CommonproblemAction")
+public class CommonproblemAction {
+	@Autowired
+	CommonproblemService commonproblemService;
+	
+	@ResponseBody
+	@RequestMapping("/query")
+	public Map<String, Object> query(int page,int rows,String likeName,String likeType){
+		Pager<Commonproblem> ListComm=commonproblemService.query(page,rows,likeName,likeType);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListComm.getSumCount());
+		map.put("rows", ListComm.getData());
+		return map;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/add")
+	public String add(Commonproblem comm,HttpSession session){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		String sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()); 
+		comm.setCpCreateSid(staff.getStaffId());
+		comm.setCpUpdateTime(sdf);
+		int count=commonproblemService.insert(comm);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	@ResponseBody
+	@RequestMapping("/delete")
+	public String delete(int commId){
+		int count=commonproblemService.delete(commId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	@ResponseBody
+	@RequestMapping("/update")
+	public Commonproblem update(int commId){
+		return commonproblemService.queryById(commId);
+	}
+	
+	@ResponseBody
+	@RequestMapping("/updatePost")
+	public String updatePost(Commonproblem comm){
+		System.out.println("comm:::"+comm);
+		String sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()); 
+		comm.setCpUpdateTime(sdf);
+		int count=commonproblemService.update(comm);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+}

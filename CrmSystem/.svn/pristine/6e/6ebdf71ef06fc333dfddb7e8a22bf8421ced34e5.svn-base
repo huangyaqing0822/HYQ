@@ -1,0 +1,419 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Client;
+import com.lxit.crmsystem.entity.ClientDevelop;
+import com.lxit.crmsystem.entity.ClientLoving;
+import com.lxit.crmsystem.entity.Clientsatisfied;
+import com.lxit.crmsystem.service.ClientDevelopService;
+import com.lxit.crmsystem.service.ClientLovingService;
+import com.lxit.crmsystem.service.ClientService;
+import com.lxit.crmsystem.service.ClientsatisfiedService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.ClientDevelopVo;
+import com.lxit.crmsystem.vo.ClientLovingVo;
+import com.lxit.crmsystem.vo.Clients;
+import com.lxit.crmsystem.vo.ClientsatisfiedVo;
+import com.lxit.crmsystem.vo.ServeVo;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/clientManagementAction")
+public class ClientManagementAction {
+	@Autowired
+	ClientService clientService;
+	@Autowired
+	ClientDevelopService clientDevelopService;
+	@Autowired
+	ClientsatisfiedService clientsatisfiedService;
+	@Autowired
+	ClientLovingService clientLovingService;
+	
+	@ResponseBody
+	@RequestMapping("/addPost")
+	public String add(Client client,HttpSession session){
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		client.setClientAssignstate(26);
+		client.setClientCreateTime(sdf);
+		client.setClientUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		client.setClientSid(staff.getStaffId()); 
+		client.setClientUpdateSid(staff.getStaffId());
+		client.setClientLv(1); // 添加时默认的 客户价值等级全部是 1
+		clientService.insert(client);
+		return "clientResource";
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/queryPostById")
+	public Map<String, Object> queryById(HttpSession session,Integer page,Integer rows,String likeName,String likeState){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<Clients> ListClients=clientService.query(page, rows, staff.getStaffId(),likeName,likeState);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		return map;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/queryClient")
+	public List<Clients> queryClient(HttpSession session){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		List<Clients> list=clientService.queryClient(staff.getStaffId());
+		return list;
+	}
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updatePost")
+	public Clients update(int clientId,HttpSession session){
+		Clients clients=clientService.queryClientById(clientId);
+		return clients;	
+	}
+		
+	@ResponseBody
+	@RequestMapping("/updateSubmitPost")//////////////////////
+	public String updateSubmit(Client client,HttpSession session){
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		client.setClientAssignstate(26);
+		client.setClientCreateTime(sdf);
+		client.setClientUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		client.setClientSid(staff.getStaffId()); 
+		client.setClientUpdateSid(staff.getStaffId());
+		client.setClientLv(1); // 添加时默认的 客户价值等级全部是 1
+		clientService.update(client);
+		return "clientResource";
+	}
+	
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/deletePost")
+	public String delete(int clientId){
+		int count=clientService.delete(clientId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+
+	
+
+////////////////////////////////////////////客户发展计划
+	
+	@ResponseBody
+	@RequestMapping("/addDevelopPost")
+	public String addDevelop(ClientDevelop clientDevelop,HttpSession session){
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		String planCoding = Serialnumber.Getnum("LY_HYQ"); //编码随机数的前缀
+		clientDevelop.setCdPlanCoding(planCoding);
+		clientDevelop.setCdCreateTime(sdf);
+		clientDevelop.setCdUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		clientDevelop.setCdUpdateSid(staff.getStaffId());
+		clientDevelopService.insert(clientDevelop);
+		return "clientDevelop";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/queryDevelopPostById")
+	public Map<String, Object> queryDevelopById(HttpSession session,int page,int rows,String likeMonth){		
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<ClientDevelopVo> ClientDevelopVoList=clientDevelopService.query(page, rows, staff.getStaffId(),likeMonth);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ClientDevelopVoList.getSumCount());
+		map.put("rows", ClientDevelopVoList.getData());
+		return map;
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteDevelopPost")
+	public String deleteDevelop(int cdId){
+		int count=clientDevelopService.delete(cdId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateDevelopPost")
+	public ClientDevelopVo updateDevelop(int cdId,HttpSession session){
+		ClientDevelopVo clientDevelopVo=clientDevelopService.queryClientDevelopById(cdId);
+		return clientDevelopVo;	
+	}
+		
+	@ResponseBody
+	@RequestMapping("/updateSubmitDevelopPost")
+	public String updateSubmitDevelop(ClientDevelop clientDevelop,HttpSession session){
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		clientDevelop.setCdCreateTime(sdf);
+		clientDevelop.setCdUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		clientDevelop.setCdUpdateSid(staff.getStaffId());
+		clientDevelopService.update(clientDevelop);
+		return "clientDevelop";
+	}
+	
+	
+	
+	
+	
+	/////////////////////////////////////////////客户价值管理
+	
+	@ResponseBody
+	@RequestMapping("/queryValueById")
+	public Map<String, Object> queryValueById(HttpSession session,int page,int rows,String likeName,String likeType){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<Clients> ListClients=clientService.queryValue(page, rows, staff.getStaffId(), likeName, likeType);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		return map;
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateValuePost")
+	public Clients updateValue(int clientId,HttpSession session){
+		Clients clients=clientService.queryValueById(clientId);
+		return clients;	
+	}
+	
+	
+	
+	
+	
+	/////////////////////////////////////////////客户满意度管理
+	
+	@ResponseBody
+	@RequestMapping("/querySatisfiedById")
+	public Map<String, Object> querySatisfiedById(HttpSession session,int page,int rows,String likeName){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<ClientsatisfiedVo> ListClientsatisfiedVo=clientsatisfiedService.query(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListClientsatisfiedVo.getSumCount());
+		map.put("rows", ListClientsatisfiedVo.getData());
+		return map;
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteSatisfiedPost")
+	public String deleteSatisfied(int csId){
+		int count=clientsatisfiedService.delete(csId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询 
+	@ResponseBody
+	@RequestMapping("/updateSatisfiedPost")
+	public ClientsatisfiedVo updateSatisfied(int csId,HttpSession session){
+		ClientsatisfiedVo clientsatisfiedVo=clientsatisfiedService.queryClientsatisfiedById(csId);
+		return clientsatisfiedVo;	
+	}
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitSatisfiedPost")
+	public String updateSubmitSatisfied(Clientsatisfied clientsatisfied,HttpSession session){
+		clientsatisfiedService.update(clientsatisfied);
+		return "clientsatisfied";
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/addSatisfiedPost")  
+	public String addSatisfied(Clientsatisfied clientsatisfied,HttpSession session){
+		clientsatisfiedService.insert(clientsatisfied);
+		return "clientDevelop";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/queryClients")
+	public List<Clients> queryClients(HttpSession session){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		return clientService.queryClient(staff.getStaffId());
+	}
+	
+	
+	
+////////////////////////////////客户信誉管理
+	@ResponseBody
+	@RequestMapping("/queryReputationById")
+	public Map<String, Object> queryReputationById(HttpSession session,int page,int rows,String likeName){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<Clients> ListClients=clientService.queryReputation(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		return map;
+	}
+	
+	
+	//查看时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateReputationPost")
+	public Clients updateReputation(int clientId,HttpSession session){
+		Clients clients=clientService.queryReputationById(clientId);
+		return clients;	
+	}
+	
+	
+	////////////////////////////客户关怀
+	@ResponseBody
+	@RequestMapping("/queryLovingById")
+	public Map<String, Object> queryLovingById(HttpSession session,int page,int rows,String likeName){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<ClientLovingVo> ListClientLovingVo=clientLovingService.query(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		map.put("total", ListClientLovingVo.getSumCount());
+		map.put("rows", ListClientLovingVo.getData());
+		return map;
+	}
+	
+	
+	
+	//查询时需要的id查询
+		@ResponseBody
+		@RequestMapping("/updateLovingPost")
+		public String updateLoving(int clientId,HttpSession session){
+			ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clientId);
+			session.setAttribute("clientLovingVo", clientLovingVo);
+			return "true";	
+		}
+		
+		@ResponseBody
+		@RequestMapping("/getClientVoing")
+		public ClientLovingVo getClientVoing(HttpSession session){
+			ClientLovingVo  clientLovingVo  = (ClientLovingVo) session.getAttribute("clientLovingVo");
+			return clientLovingVo;
+			
+		}
+	
+	
+	
+	//关怀提醒
+	@ResponseBody
+	@RequestMapping("/addLovingPost")
+	public String addLoving(ClientLoving clientLoving,HttpSession session){
+		clientLovingService.insert(clientLoving);
+		return "clientResource";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteLovingPost")
+	public String deleteLoving(int clId){
+		int count=clientLovingService.delete(clId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateLovingPost2")
+	public ClientLovingVo updateLoving2(int clientId,HttpSession session){
+		ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clientId);
+		session.setAttribute("clientLovingVo", clientLovingVo);
+		return clientLovingVo;	
+	}
+			
+
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitLovingPost") 
+	public String updateSubmitLoving(ClientLoving clientLoving,HttpSession session){
+		clientLovingService.update(clientLoving);
+		return "true";
+	}
+	
+	
+	///详情
+	@ResponseBody
+	@RequestMapping("/addDetailsPost")
+	public String addDetails(ClientLoving clientLoving,HttpSession session){
+		clientLovingService.insert(clientLoving);
+		return "clientResource";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteDetailsPost")
+	public String deleteDetails(int clId){
+		int count=clientLovingService.delete(clId);
+		if(count>0){
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateDetailsPost2")
+	public ClientLovingVo updateDetails2(int clId,HttpSession session){
+		ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clId);
+		session.setAttribute("clientLovingVo", clientLovingVo);
+		
+		return clientLovingVo;	
+	}
+			
+
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitDetailsPost") 
+	public String updateSubmitDetails(ClientLoving clientLoving,HttpSession session){
+		clientLovingService.update(clientLoving);
+		return "clientDevelop";
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/updateState")
+	public String updateState(Client client){
+		client.setClientState(25);
+		int count=clientService.updateState(client);
+		if(count>0){
+			return "true";
+		}
+		return "flse";
+	}
+	
+	
+}

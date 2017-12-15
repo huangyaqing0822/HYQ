@@ -1,0 +1,166 @@
+package com.lxit.crmsystem.controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.lxit.crmsystem.entity.CompeteManage;
+import com.lxit.crmsystem.entity.DataDictionary;
+import com.lxit.crmsystem.service.CompeteManageService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.vo.CompeteManageVo;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+public class CompeteAction {
+	
+	@Autowired
+	private CompeteManageService competeManageService;
+	 
+
+
+	public void setCompeteManageService(CompeteManageService competeManageService) {
+		this.competeManageService = competeManageService;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/pageByLikeCompete")
+	public Map<String, Object> pageByLikeMarketHap(HttpSession session,int page,int rows,String date){
+		System.out.println("date : "+date);
+		Pager<CompeteManageVo> pager = competeManageService.selectByLike(page, rows, date);
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", pager.getSumCount());
+		map.put("rows", pager.getData());
+		System.out.println("查询  ：　"+pager.getData());
+		return map;
+	}
+	
+	//查询状态
+	@ResponseBody
+	@RequestMapping("/queryStateCompete")
+	public List<DataDictionary> queryStateCompete(){
+		List<DataDictionary> list = competeManageService.queryState();
+		return list;
+	}
+	
+	//查询类型
+	@ResponseBody
+	@RequestMapping("/queryTypeCompete")
+	public List<DataDictionary> queryTypeCompete(){
+		List<DataDictionary> list = competeManageService.queryType();
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/getByCompeteId")
+	public List<CompeteManageVo> listCom(int competId){
+		CompeteManageVo vo = competeManageService.getById(competId);
+		List<CompeteManageVo> list = new ArrayList<CompeteManageVo>();
+		list.add(vo);
+		return list;
+	}
+	
+	//归档：改变状态
+	@ResponseBody
+	@RequestMapping("/updateState")
+	public String updateState(int competId,HttpSession session){
+
+		System.out.println("competId :　"+competId);
+		CompeteManageVo voId = competeManageService.getById(competId);
+		if(voId.getCompetStateValue().equals("未归档")){
+			int count = competeManageService.updateState(competId);
+			if(count > 0){
+				System.out.println("归档成功");
+				return "true";
+			}
+		}
+		return "false";
+		
+	}
+	
+	//增加同时导入数据（上传附件）
+	@RequestMapping("/addCompete")
+	public String fileupload(ServletRequest request, @RequestParam("file") MultipartFile file, Model model,
+			HttpSession session,CompeteManage competeManage) throws IOException {
+		
+		Staffs staff =   (Staffs) session.getAttribute("staff");
+		int loginId = staff.getStaffId();
+		
+		//List<String> listImages = new ArrayList<String>();
+		//获取文件名称
+	    String filename = file.getOriginalFilename().toLowerCase();
+	    System.out.println("fileName ---------------------: "+filename);
+	    //获取文件类型
+	    String type = file.getContentType();
+		System.out.println("type 上传文件类型 : "+type);
+		
+		List<String> listFile = new ArrayList<String>();
+		if (!file.isEmpty()) { 
+			//截取文件后缀
+			String fileext = filename.substring(filename.lastIndexOf("."));
+			//生成新的随机文件名称
+			String newfileName = UUID.randomUUID() + fileext;
+			//获取文件的上传路径
+			String uploadpath = request.getServletContext().getRealPath("../CrmSystemUpload");
+			System.out.println("uploadPath : "+uploadpath);
+			//文件保存路径
+			String savepath = (uploadpath + "\\" + newfileName);
+			File files = new File(savepath);
+			if(files.exists()){
+				files.mkdirs();
+			}
+			System.out.println("===="+new String(file.getBytes(),"utf-8"));
+			file.transferTo(files);
+			model.addAttribute("img","CrmSystemUpload/"+newfileName);
+			
+			//String imageurl = saveFile(request, file);
+			competeManage.setCompetSid(loginId);
+			competeManage.setCompetUpdateSid(loginId);
+			
+		}else if((".text").equals(type)){
+			model.addAttribute("message", "选择要上传的文件类型必须为.text文件");
+		} else {
+			model.addAttribute("message", "请选择要上传的文件");
+		}
+		return "fileUpload";
+	}
+	
+	
+
+	/*//提取保存文件的方法
+	private String saveFile(ServletRequest request, MultipartFile file) throws IOException {
+		
+		//获取文件的上传路径
+		String uploadpath = request.getServletContext().getRealPath("../CrmSystemUpload");
+		//获取文件名称
+		String filename = file.getOriginalFilename();
+		//截取文件后缀
+		String fileext = filename.substring(filename.lastIndexOf("."));
+		//生成新的随机文件名称
+		String newfileName = UUID.randomUUID() + fileext;	
+		//文件保存路径
+		File savepath = new File(uploadpath + "/" + newfileName);
+		//上传文件
+		file.transferTo(savepath);
+		
+		return newfileName;
+	}
+	*/
+	
+
+}

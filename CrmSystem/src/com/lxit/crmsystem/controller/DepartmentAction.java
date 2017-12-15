@@ -1,0 +1,90 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Department;
+import com.lxit.crmsystem.service.DepartmentService;
+import com.lxit.crmsystem.service.StaffService;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/departmentAction")
+public class DepartmentAction {
+	@Autowired
+	DepartmentService departmentService;
+	
+	
+	@ResponseBody
+	@RequestMapping("/jsonDepartment")
+	public List<Department> jsonDepartment(){
+		List<Department> list = departmentService.listDepartment();
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/jsonDepartment2")
+	public List<Department> jsonDepartment2(){
+		List<Department> list = departmentService.listDepartment2();
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/insertDepartments")
+	public String insertDepartments(Department department,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		String marketCoding = Serialnumber.Getnum("NB");
+		Staffs staff = (Staffs) session.getAttribute("staff");
+		int countId = staff.getStaffId();
+		department.setDepartmentConding(marketCoding);
+		department.setDepartmentUpdateSid(countId);
+		department.setDepartmentCreateTime(time);
+		if (departmentService.insertDepartment(department)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	
+	@ResponseBody
+	@RequestMapping("/deleteDepartments")
+	public String deleteDepartments(int departmentId){
+	 if (departmentService.deleteDepartment(departmentId)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	
+	@ResponseBody
+	@RequestMapping("/selectDepartment")
+	public List<Department> selectDepartment(int departmentId,Map<String, Object>map){
+		Department department = departmentService.listDepartOne(departmentId);
+		List<Department> list = new ArrayList<>();
+		list.add(department);
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/updateDepartment")
+	public String updateDepartment(Department department,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		department.setDepartmentUpdateTime(time);
+		if (departmentService.updateDepartment(department)){
+			return "true";
+		}
+		return "false";
+	}
+}

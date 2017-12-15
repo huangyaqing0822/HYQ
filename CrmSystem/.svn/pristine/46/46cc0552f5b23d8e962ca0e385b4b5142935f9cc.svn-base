@@ -1,0 +1,82 @@
+package com.lxit.crmsystem.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.service.ContractService;
+import com.lxit.crmsystem.vo.Staffs;
+import com.lxit.crmsystem.vo.ViewIdentType;
+
+@RequestMapping("contract")
+@Controller
+public class ContractContriller {
+
+	@Autowired
+	ContractService cs;
+
+	@RequestMapping("contractType")
+	@ResponseBody
+	public List<ViewIdentType> babyType() {
+		return cs.queryType();
+	}
+
+	@RequestMapping("contractStatr")
+	@ResponseBody
+	public List<ViewIdentType> babyStatr() {
+		return cs.queryState();
+	}
+
+	@RequestMapping("contractAdd")
+	@ResponseBody
+	public boolean contractAdd(HttpSession session, String name, String type, Double price, String jia, String yi,
+			String jiaqz, String yiqz, String context, String remark) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("name", name);
+		map.put("type", type);
+		map.put("price", price);
+		map.put("jia", jia);
+		map.put("yi", yi);
+		map.put("jiaqz", jiaqz);
+		map.put("yiqz", yiqz);
+		map.put("context", context);
+		map.put("remark", remark);
+		map.put("sid", ((Staffs) session.getAttribute("staff")).getStaffId());
+		return cs.insert(map) > 0;
+	}
+	@RequestMapping("contractQuerys")
+	@ResponseBody
+	public Map<String, Object> contractQuery(String name, Integer type, Integer state, Integer page, Integer rows) {
+		Map<String, Object> map = getPageParem(page, rows);
+		System.out.println(name);
+		System.out.println(type);
+		System.out.println(state);
+		map.put("name", name);
+		map.put("type", type);
+		map.put("state", state);
+		return cs.contractQuery(map);
+	}
+
+	@RequestMapping("selectContract")
+	@ResponseBody
+	public Map<String, Object> selectContract(String name,Integer page, Integer rows) {
+		Map<String, Object> map = getPageParem(page, rows);
+		System.out.println(name);
+		map.put("name", name);
+		return cs.selectContract(map);
+	}
+	
+	public Map<String, Object> getPageParem(Integer page, Integer rows) {
+		Map<String, Object> map = new HashMap<>();
+		map.put("page", ((page == 0 ? 1 : page) - 1) * rows);
+		map.put("rows", rows);
+		return map;
+	}
+}

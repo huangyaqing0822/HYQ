@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.MarketForecastDao">
+	
+  <resultMap type="com.lxit.crmsystem.entity.MarketForecast" id="forecastMap">
+     <id property="forecastId" column="fc_id" />
+     <result property="forecastResultTitle" column="fc_resultTitle" />
+     <result property="forecastMonth" column="fc_month" />
+     <result property="forecastType" column="fc_type" />
+     <result property="forecastText" column="fc_text" />
+     <result property="forecastCreateTime" column="fc_createTime" />
+     <result property="forecastUpdateTime" column="fc_updateTime" />
+     <result property="forecastUpdateSid" column="fc_updateSid" />
+     <result property="departmentId" column="departmentId" />
+     <result property="fc_departmentBig" column="fc_departmentBig"/>
+     <result property="fc_departmentCount" column="fc_departmentCount"/>
+  </resultMap>
+  <resultMap type="com.lxit.crmsystem.vo.MarketForecastVo" id="forecastVoMap">
+     <id property="forecastId" column="fc_id" />
+     <result property="forecastResultTitle" column="fc_resultTitle" />
+     <result property="forecastMonth" column="fc_month" />
+     <result property="forecastTypeValue" column="fc_type" />
+     <result property="forecastText" column="fc_text" />
+     <result property="forecastCreateTime" column="fc_createTime" />
+     <result property="forecastUpdateTime" column="fc_updateTime" />
+     <result property="forecastUpdateSname" column="fc_updateSname" />
+     <result property="departmentName" column="departmentName" />
+     <result property="fc_departmentBig" column="fc_departmentBig"/>
+     <result property="fc_departmentCount" column="fc_departmentCount"/>
+  </resultMap>
+  
+  <resultMap type="DataDictionary" id="DataDictionaryMapper">
+		<id property="dataId" column="data_id" />
+		<result property="dataCode" column="data_code" />
+		<result property="dataName" column="data_name" />
+		<result property="dataValue" column="data_value" />
+		<result property="dataCreateTime" column="data_createTime" />
+		<result property="dataUpdateTime" column="data_updateTime" />
+		<result property="dataSid" column="data_s_id" />
+	</resultMap>
+	
+	<insert id="addMarketForecast" parameterType="com.lxit.crmsystem.entity.MarketForecast">
+     insert into marketforecast(
+         fc_text,
+	     fc_resultTitle,
+	     fc_month,fc_type,
+	     fc_departmentId,
+	     fc_month,
+	     forecastCreateTime,
+	     forecastUpdateTime,
+	     forecastUpdateSid,
+	     fc_departmentBig,
+	     fc_departmentCount,)
+     values(
+         #{forecastText},
+         #{forecastResultTitle},
+         #{forecastType},
+         #{departmentId},
+         #{forecastMonth},
+         #{fc_createTime},
+         #{fc_updateTime},
+         #{fc_updateSid},
+         #{fc_departmentBig},
+         #{fc_departmentCount})
+  </insert>
+
+	<select id="queryDateCode" resultMap="DataDictionaryMapper">
+		SELECT * FROM datadictionary WHERE data_code = 'forecast_type'
+	</select>
+  
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+      select count(1) from marketforecast where 1=1
+      <if test="array[0] !=null and array[0] !='' ">
+          and fc_month LIKE concat('%',#{array[0]},'%')
+      </if>
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="forecastVoMap">
+     select fc.*,s1.s_name AS forecastUpdateSname,
+     (SELECT d.data_value FROM datadictionary d WHERE d.data_id=fc.fc_type) forecastTypeValue
+     FROM marketforecast fc,staff s1 WHERE fc.fc_updateSid=s1.s_id
+	  <if test="date != null and date != '' ">
+	     and fc.fc_month like concat('%',#{date},'%')
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+  </select>
+
+  <select id="getById" resultMap="forecastVoMap" parameterType="int">
+      <!-- select * from marketforecast where fc_id=#{0} -->
+      SELECT m.*,d.d_fallName AS departmentName 
+      FROM marketforecast m,department d WHERE m.fc_departmentId=d.d_id and fc_id=#{0}
+  </select>
+  
+  
+  
+   
+ 
+ 
+  
+</mapper>

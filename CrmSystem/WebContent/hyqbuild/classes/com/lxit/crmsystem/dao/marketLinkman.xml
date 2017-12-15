@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.LinkmanDao">
+	
+  <resultMap type="com.lxit.crmsystem.entity.LinkMan" id="limkmanMap">
+     <id property="linkId" column="link_id" />
+     <result property="linkName" column="link_name" />
+     <result property="linkSex" column="link_sex" />
+     <result property="linkPhone" column="link_phone" />
+     <result property="linkAddress" column="link_address" />
+     <result property="linkRemark" column="link_remark" />
+     <result property="linkCreateTime" column="link_createTime" />
+     <result property="linkUpdateTime" column="link_updateTime" />
+     <result property="linkConding" column="link_conding" />
+     <result property="linkWorkphone" column="link_workphone" />
+     <result property="linkHomephone" column="link_homephone" />
+     <result property="linkBirthdayDate" column="link_birthdayDate" />
+     <result property="linkEmail" column="link_email" />
+     <result property="linkSid" column="link_s_id" />
+     <result property="linkUpdateSid" column="link_updateSid" />
+  </resultMap>
+   
+    
+	
+	<insert id="addLinkman" parameterType="com.lxit.crmsystem.entity.LinkMan">
+          INSERT INTO linkman (
+			link_name,
+			link_sex,
+			link_phone,
+			link_address,
+			link_remark,
+			link_createTime,
+			link_updateTime,
+			link_conding,
+			link_workphone,
+			link_homephone,
+			link_birthdayDate,
+			link_email,
+			link_s_id,
+			link_updateSid
+		)values(
+		    #{linkName},
+		    #{linkSex},
+		    #{linkPhone},
+		    #{linkAddress},
+		    #{linkRemark},
+		    now(),
+		    now(),
+		    #{linkConding},
+		    #{linkWorkphone},
+		    #{linkHomephone},
+		    #{linkBirthdayDate},
+		    #{linkEmail},
+		    #{linkSid},
+		    #{linkUpdateSid},
+		)
+	 
+	</insert>
+	
+	<select id="getById" resultMap="limkmanMap" parameterType="int">
+	      select * from linkman where link_id=#{0}
+	</select>
+	
+	<update id="updateLinkman" parameterType="com.lxit.crmsystem.entity.LinkMan">
+	     
+	    update linkman set 
+	        link_name=#{linkName},
+	        link_sex=#{linkSex},
+	        link_phone=#{linkPhone},
+	        link_address=#{linkAddress},
+	        link_remark=#{linkRemark},
+	        link_updateTime=now(),
+	        link_workphone=#{linkWorkphone},
+	        link_homephone=#{linkHomephone},
+	        link_birthdayDate=#{linkBirthdayDate},
+	        link_email=#{linkEmail},
+	        link_s_id=#{linkSid},
+			link_updateSid=#{linkUpdateSid}
+	     where link_id=#{linkId}
+	     
+	</update>
+	
+	<delete id="delLineman" parameterType="int">
+	    delete from linkman where link_id=#{0}
+	</delete>
+  
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+        SELECT count(1) FROM `linkman` where 1=1
+        <if test="array[0] !=null and array[0] !='' ">
+            and link_name like concat('%',#{array[0]},'%') 
+        </if>
+      
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="limkmanMap">
+      SELECT * FROM `linkman` where 1=1
+	  <if test="name != null and name != '' ">
+	     and link_name like concat('%',#{name},'%') 
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+
+  </select>
+
+ 
+  
+</mapper>

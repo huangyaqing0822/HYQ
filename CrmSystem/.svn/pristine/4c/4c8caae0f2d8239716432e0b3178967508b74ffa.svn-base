@@ -1,0 +1,103 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>参与投票</title>
+</head>
+<body>
+	<table id="voteView_dagr">
+	
+	</table>
+<script type="text/javascript">
+	$(function() {
+		$("#voteView_dagr").datagrid({
+			width : 650,
+			url : '../selectOne?state=5',
+			title : '月份统计',
+			fit:true,
+			striped:true,
+			rownumbers:true,
+			toolbar:'#voteView_manager',
+			columns:[[
+					{
+						  field : 'month',
+						  title : '月份',
+						  width : 100
+					},
+	              {field:'sum1',sortable : true,title:'金额',width:150},
+	              {field:'sum2',sortable : true,title:'操作',width:150,formatter:formatOper},
+		   ]]
+		  
+		})
+		vote_manager={
+			search:function(){
+				$('#voteView_dagr').datagrid('load',{
+					conTitle:$('[name=conTitle]').val()
+				})
+				
+			},
+			refresh:function(){
+				$('#voteView_dagr').datagrid('reload');
+			}
+		}
+	})
+
+	function fun1(row) {
+		var mark;
+		$.ajax({
+			url:'Vote_checkVote',
+			type:'post',
+			async: false,
+			data:{
+				voteId:row.voteId
+			},
+			success:function(data){				
+				if(data=="false"){
+					mark= false;
+				}else{
+					mark = true;
+				}
+			}
+		})
+		return mark;
+	}
+	
+	function formatOper(val,row,index){
+
+		return '<a href="#" style="color:blue;" onclick="editUser1('+index+')">点击查看</a>';			 
+		
+	} 
+	function editUser1(index){ 
+		$('#voteView_dagr').datagrid('selectRow',index);
+		var row = $('#voteView_dagr').datagrid('getSelected');  
+		console.log(row);
+		if ($('#tabs').tabs('exists',"月份视图")) {
+			$('#tabs').tabs('close','月份视图');
+			$('#tabs').tabs('add', {
+				title : "月份视图",
+				iconCls : "",
+				closable : true,
+				href : "../selectOne1?month="+row.month
+			})
+		} else {
+			$('#tabs').tabs('add', {
+				title : "月份视图",
+				iconCls : "",
+				closable : true,
+				href : "../selectOne1?month="+row.month
+			})
+		}
+	} 
+	
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

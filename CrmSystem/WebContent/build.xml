@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project name="CrmSystem" default="deploy" basedir=".">
+	<property name="build" value="./hyqbuild"></property>
+	<property name="war_name" value="CrmSystem"></property>
+	<property name="web_dir" value="${basedir}/WEB-INF"></property>
+	<property name="lib_dir" value="${basedir}/WEB-INF/lib"></property>
+	<property name="tomcat_home" value="D:\apache-tomcat-7.0.53"></property>
+	
+	<target name="create_build_dir" depends="delete_build_dir">
+		<echo message="开始创建文件夹"></echo>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${build}/classes"/>
+		<echo message="结束创建文件夹"></echo>
+	</target>
+	
+	<target name="delete_build_dir">
+		<echo message="删除历史文件夹开始"></echo>
+		<mkdir dir="${build}"/>
+		<mkdir dir="${build}/classes"/>
+		<echo message="删除历史文件夹结束"></echo>
+	</target>
+	
+	
+	<target name="compile" depends="create_build_dir">
+		<javac srcdir="../src" destdir="${build}/classes" debug="true" includeantruntime="false">
+			<compilerarg line="-encoding UTF-8 "/>
+			<classpath>
+				<fileset dir="${lib_dir}">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
+		
+		<!-- 把src下面的xml配置文件复制过去 -->
+		<copy todir="${build}/classes">
+			<fileset dir="../src">
+				<include name="*.xml"/>
+			</fileset>
+		</copy>
+		
+		<!-- 把src下面的，dao层下面的xml配置文件复制过去 -->
+		<copy todir="${build}/classes/com/lxit/crmsystem/dao">
+					<fileset dir="../src/com/lxit/crmsystem/dao">
+						<include name="*.xml"/>
+					</fileset>
+				</copy>
+	</target>
+	
+	
+	<target name="war" depends="compile">
+		<echo message="开始生成war包"></echo>
+		<war destfile="../${war_name}.war" webxml="${web_dir}/web.xml">
+			<fileset dir="${basedir}">
+				
+			</fileset>
+			<lib dir="${lib_dir}"></lib>
+			<classes dir="${build}/classes"></classes>
+		</war>
+		<echo message="结束生成war包"></echo>
+	</target>
+	
+	
+	<target name="deploy" depends="shutdown_server,war">
+		<echo message="启动tomcat"></echo>
+		<!-- 把生成好的war包移动到tomcat里面 -->
+		<move file="../${war_name}.war" tofile="${tomcat_home}/webapps/${war_name}.war" />
+		<!-- 启动 -->
+		<exec executable="${tomcat_home}/bin/startup.bat">
+			<env key="CATALINA_HOME" path="${tomcat_home}"/>
+		</exec>
+		<echo message="启动tomcat成功"></echo>
+	</target>
+	
+	<target name="shutdown_server" >
+		<!-- 删除webapps目录下面的项目内容 -->
+		<echo message="删除项目内容======================="></echo>
+		<delete file="${tomcat_home}/webapps/${war_name}.war"></delete>
+		<delete dir="${tomcat_home}/webapps/${war_name}"></delete>
+		<echo message="删除成功======================="></echo>
+		<echo message="停止tomcat"></echo>
+		<exec executable="${tomcat_home}/bin/shutdown.bat">
+			<env key="CATALINA_HOME" path="${tomcat_home}"/>
+		</exec>
+	</target>	
+</project>

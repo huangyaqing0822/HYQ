@@ -1,0 +1,113 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Notice;
+import com.lxit.crmsystem.service.NoticeService;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/noticeAction")
+public class NoticeAction {
+	
+	@Autowired
+	NoticeService noticeService;
+	
+	@ResponseBody
+	@RequestMapping("/getlistNotise")
+	public Map<String, Object> getlistNotise(Integer rows ,Integer page,String noticeTitle){
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("pageSize", rows);
+		map.put("pageIndex", (page-1)*rows);
+		if(noticeTitle!=null&&(!noticeTitle.equals(""))){
+			map.put("noticeTitle", "%"+noticeTitle+"%");
+		}
+		List<Notice> list = noticeService.listNoticeSelect(map);
+		Map<String,Object> maps = new HashMap<String,Object>();
+		maps.put("rows", list);
+		maps.put("total", noticeService.notiCount(map));
+		return maps;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/insertNotices")
+	public String insertNotices(Notice notice,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		String marketCoding = Serialnumber.Getnum("lhx");
+		Staffs staff =   (Staffs) session.getAttribute("staff");
+		int countId = staff.getStaffId();
+		notice.setNoticeConding(marketCoding);
+		notice.setNoticeReleaseName(countId);
+		notice.setNoticeReleaseDate(time);
+		notice.setNoticeCreatetime(time);
+		notice.setNoticeUpdateTime(time);
+		if (noticeService.insertNote(notice)){
+			System.out.println("notice------"+notice);
+			return "true";
+		}
+		return "false";
+	}
+	
+	@ResponseBody
+	@RequestMapping("/deleteNotis")
+	public String deleteNotis(@RequestParam("noticeId")Integer noticeId){
+		System.out.println("删除++++"+noticeId);
+		
+		if (noticeService.deleteNote(noticeId)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	
+	@ResponseBody
+	@RequestMapping("/getListOne")
+	public List<Notice> getListOne(@RequestParam("noticeId")Integer noticeId,Map<String, Object>map){
+		Notice notice = noticeService.listOne(noticeId);
+		List<Notice> list = new ArrayList<>();
+		list.add(notice);
+		return list;
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/getListOne2")
+	public List<Notice> getListOne2(@RequestParam("noticeId")Integer noticeId,Map<String, Object>map){
+		System.out.println("noticeId"+noticeId);
+		Notice notice = noticeService.listOne(noticeId);
+		
+		List<Notice> list = new ArrayList<>();
+		list.add(notice);
+		return list;
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/updatNotices")
+	public String updatNotices(Notice notice,HttpSession session){
+		if (noticeService.updateNote(notice)){
+			return "true";
+		}else{
+			return "false";
+		}
+		
+	}
+	
+	
+	
+}

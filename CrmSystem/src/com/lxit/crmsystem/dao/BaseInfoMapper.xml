@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.BaseInfoDao">
+	<resultMap type="com.lxit.crmsystem.entity.BaseInfo" id="BaseInfoMapper">
+		<id property="baseId" column="base_id"/>
+		<result property="baseDescribe" column="base_describe"/>
+		<result property="baseKeywords" column="base_keywords"/>
+		<result property="baseValue" column="base_value"/>
+		<result property="baseCreateId" column="base_createId"/>
+		<result property="baseUpdateTime" column="base_updateTime"/>
+		<result property="baseCaeateTime" column="base_caeateTime"/>
+		<result property="baseUpdateSid" column="base_update_s_id"/>
+		<result property="baseRamrk" column="base_ramrk"/>
+		<result property="staffName" column="staffName"/>
+	</resultMap>
+	
+	<select id="selectBaseInfo" resultMap="BaseInfoMapper" parameterType="Map">
+	SELECT base_id AS baseId,b.base_createId as baseCreateId,b.base_describe AS baseDescribe,b.base_keywords AS baseKeywords,b.base_value AS baseValue,s.s_name AS staffName,b.base_ramrk AS baseRamrk FROM baseinfo b INNER JOIN staff s ON b.base_createId = s.s_id
+		<if test="baseDescribe!=null and baseDescribe!=''">
+		AND b.base_describe like #{baseDescribe}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	<select id="baseInfoCount" resultType="int" parameterType="Map">
+		SELECT COUNT(1) FROM baseinfo b INNER JOIN staff s ON b.base_createId = s.s_id
+		<if test="baseDescribe!=null and baseDescribe!=''">
+			AND b.base_describe like #{baseDescribe}
+		</if>
+	</select>
+	
+	<insert id="insertBaseInfo" parameterType="com.lxit.crmsystem.entity.BaseInfo">
+		INSERT INTO baseinfo 
+		(base_describe,base_keywords,base_value,base_createId,base_updateTime,base_caeateTime,base_update_s_id,base_ramrk)
+		VALUES
+		(#{baseDescribe},#{baseKeywords},#{baseValue},#{baseCreateId},#{baseUpdateTime},#{baseCaeateTime},#{baseUpdateSid},#{baseRamrk})
+	</insert>
+	<delete id="deleteBaseInfo" parameterType="int">
+		DELETE FROM baseinfo WHERE base_id=#{baseId};
+	</delete>
+	
+	<select id="selectBaseInfoId" resultMap="BaseInfoMapper" parameterType="int">
+	SELECT base_id AS baseId,b.base_describe AS baseDescribe,b.base_keywords AS baseKeywords,b.base_value AS baseValue,s.s_name AS staffName,base_ramrk AS baseRamrk FROM baseinfo b INNER JOIN staff s ON b.base_createId = s.s_id WHERE base_id=#{baseId};
+	</select>
+	
+	<update id="updateBaseInfo" parameterType="com.lxit.crmsystem.entity.BaseInfo">
+	UPDATE baseinfo SET 
+	base_describe=#{baseDescribe},base_keywords=#{baseKeywords},base_updateTime=#{baseUpdateTime},base_ramrk=#{baseRamrk},base_update_s_id=#{baseUpdateSid}
+	where base_id=#{baseId};
+	</update>
+</mapper>

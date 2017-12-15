@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.DataDictionaryDao">
+	<resultMap type="DataDictionary" id="DataDictionaryMapper">
+		<id property="dataId" column="data_id" />
+		<result property="dataCode" column="data_code" />
+		<result property="dataName" column="data_name" />
+		<result property="dataValue" column="data_value" />
+		<result property="dataCreateTime" column="data_createTime" />
+		<result property="dataUpdateTime" column="data_updateTime" />
+		<result property="dataSid" column="data_s_id" />
+		<result property="dataRemark" column="data_remark"/>
+		<result property="staffName" column="staffName"/>
+	</resultMap>
+
+	<select id="query" resultMap="DataDictionaryMapper"
+		parameterType="String">
+		SELECT
+		*
+		FROM
+		datadictionary
+		WHERE
+		data_code = #{dataCode}
+	</select>
+	
+	
+	<select id="selectData" resultMap="DataDictionaryMapper" parameterType="Map">
+		SELECT
+		d.data_id AS dataId,s.s_name AS staffName,d.data_name AS dataName,d.data_code AS dataCode,d.data_value AS dataValue,d.data_updateTime AS dataUpdateTime FROM datadictionary d 
+		INNER JOIN staff s ON d.data_s_id=s.s_id
+		<if test="dataName!=null and dataName!=''">
+			AND d.data_name like #{dataName}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	<select id="selectCountdata" resultType="int" parameterType="Map">
+		SELECT count(1) FROM datadictionary d INNER JOIN staff s ON d.data_s_id=s.s_id
+		<if test="dataName!=null and dataName!=''">
+			AND d.data_name like #{dataName}
+		</if>
+	</select>
+	
+	
+	<insert id="insertDataDictionary" parameterType="DataDictionary">
+		INSERT INTO datadictionary 
+		(data_code,data_name,data_value,data_createTime,data_updateTime,data_s_id,data_remark)
+		VALUES 
+		(#{dataCode},#{dataName},#{dataValue},#{dataCreateTime},#{dataUpdateTime},#{dataSid},#{dataRemark});
+	</insert>
+	
+	<delete id="deleteDataDictionary" parameterType="int">
+		DELETE FROM datadictionary WHERE data_id=#{dataId};
+	</delete>
+	
+	<select id="dataDictionId" resultMap="DataDictionaryMapper" parameterType="int">
+		SELECT data_id AS dataId,data_code AS dataCode,data_name AS dataName,data_value AS dataValue,data_remark AS dataRemark FROM datadictionary WHERE data_id=#{dataId};
+	</select>
+	
+	<update id="updatDataDictionary" parameterType="DataDictionary">
+		UPDATE datadictionary SET
+		data_id=#{dataId},
+		data_code=#{dataCode},
+		data_name=#{dataName},
+		data_value=#{dataValue},
+		data_updateTime=#{dataUpdateTime},
+		data_remark=#{dataRemark}
+		where data_id=#{dataId};
+	</update>
+</mapper>

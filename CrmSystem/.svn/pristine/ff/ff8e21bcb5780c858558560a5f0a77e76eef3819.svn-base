@@ -1,0 +1,265 @@
+$("#contractcc").datagrid({
+	url : "http://localhost:8080/CrmSystem/contract/contractQuerys",
+	height : 520,
+	fitColumns : true,
+	striped : true,
+	rownumbers : true,
+	border : false,
+	pagination : true,
+	singleSelect : true,
+	// 分页的
+	pageSize : 10,
+	pageList : [ 5, 10, 15, 20 ],
+	pageNumber : 1,
+	toolbar : "manager_tool",
+	columns : [ [ {
+		field : 'Code',
+		width : 35,
+		checkbox : true
+	}, {
+		field : 'title',
+		title : '合同标题',
+		width : 190,
+		align : 'center',
+	}, {
+		field : 'id',
+		title : '订单号',
+		width : 190,
+		align : 'center',
+		hidden : true
+	}, {
+		field : 'state',
+		width : 190,
+		title : '合同状态',
+		align : 'center',
+	}, {
+		field : 'type',
+		title : '合同类型',
+		width : 190,
+		align : 'center',
+	}, {
+		field : 'time',
+		title : '创建时间',
+		width : 190,
+		align : 'center',
+	}, {
+		field : 'dai',
+		title : '待处理人',
+		width : 190,
+		align : 'center',
+	}, ] ],
+});
+function onClickCell() {
+	var id;// 返回该行的id
+	$("input[name='isShow1']").each(function(i, e) {
+		if (e.checked == true) {
+			id = i;
+		}
+	})
+	var arrays = $("#contractcc").datagrid("getRows");
+	console.log(id);
+	if (arrays[id] != undefined) {
+		if (confirm("是否确认删除？")) {
+			$.ajax({
+				url : "../ServerAction/delete",
+				type : "post",
+				data : {
+					id : arrays[id].serveId
+				},
+				success : function(result) {
+					console.log(result);
+					if (result == "true") {
+						alert("删除成功！");
+						$('#contractcc').datagrid('reload');
+					} else {
+						alert("删除失败！");
+					}
+				}
+
+			})
+		}
+	} else {
+		alert("你还未选择！！")
+	}
+
+}
+function contractUpdate() {
+	var id;// 返回该行的id
+	$("input[name='isShow1']").each(function(i, e) {
+		if (e.checked == true) {
+			id = i;
+		}
+	})
+	var arrays = $("#contractcc").datagrid("getRows");
+	if (arrays[id] != undefined) {
+		if (confirm("是否确认修改？")) {
+			$.ajax({
+				url : "../ServerAction/update",
+				type : "post",
+				data : {
+					serveId : arrays[id].serveId
+				},
+				success : function(result) {
+					if (result != null) {
+						$("#updatePost").form("load", {
+							serveId : result.serveId,
+							serveName : result.serveName,
+							serveClientId : result.serveClientId,
+							servePhone : result.servePhone,
+							serveContent : result.serveContent,
+							serveRemark : result.serveRemark,
+							dataType : result.dataType
+						});
+						$('#contractUpdate').window({
+							width : 600,
+							height : 400,
+							modal : true,
+							title : "修改服务"
+						});
+					} else {
+						alert("修改出错！");
+					}
+				}
+
+			})
+		}
+	} else {
+		alert("你还未选择！！")
+	}
+}
+function contractAdd() {
+	$('#contractAdd').window({
+		width : 1000,
+		height : 600,
+		modal : true,
+		title : "新建服务"
+	});
+}
+function select() {
+	var id;// 返回该行的id
+	$("input[name='isShow1']").each(function(i, e) {
+		if (e.checked == true) {
+			id = i;
+		}
+	})
+	var arrays = $("#contractcc").datagrid("getRows");
+	if (arrays[id] != undefined) {
+
+		$.ajax({
+			url : "../ServerAction/update",
+			type : "post",
+			data : {
+				serveId : arrays[id].serveId
+			},
+			success : function(result) {
+				if (result != null) {
+					$("#selectPost").form("load", {
+						serveId : result.serveId,
+						serveName : result.serveName,
+						serveClientId : result.serveClientId,
+						servePhone : result.servePhone,
+						serveContent : result.serveContent,
+						serveRemark : result.serveRemark,
+						dataType : result.dataType
+					});
+					$('#contractLook').window({
+						width : 600,
+						height : 400,
+						modal : true,
+						title : "查看服务"
+					});
+				} else {
+					alert("查看出错！");
+				}
+			}
+
+		})
+
+	} else {
+		alert("你还未选择你要查看的服务！！")
+	}
+}
+function addSubmit() {
+	$('#addPost').form('submit', {
+		url : "http://localhost:8080/CrmSystem/contract/contractAdd",
+		success : function(data) {
+			if (data) {
+				$('#contractAdd').window("close");
+				$('#contractcc').datagrid('reload');
+			}
+
+		}
+	});
+}
+function updatePost() {
+	$('#updatePost').form('submit', {
+		url : "../ServerAction/updatePost",
+		success : function(data) {
+			if (data == "true") {
+				$('#contractUpdate').window("close");
+				$('#contractcc').datagrid('reload');
+			}
+		}
+	});
+}
+function close() {
+	$('#contractAdd').window("close")
+}
+function selectClose() {
+	$('#contractLook').window("close")
+}
+function closeUpdate() {
+	$('#contractUpdate').window("close")
+}
+function submit() {
+	var id;// 返回该行的id
+	$("input[name='isShow1']").each(function(i, e) {
+		if (e.checked == true) {
+			id = i;
+		}
+	})
+	var arrays = $("#contractcc").datagrid("getRows");
+	if (arrays[id] != undefined) {
+		if (arrays[id].dataValue == "新创建") {
+			$.ajax({
+				url : "../ServerAction/updateState",
+				type : "post",
+				data : {
+					serveId : arrays[id].serveId
+				},
+				success : function(result) {
+					if (result == "true") {
+						alert("提交成功！");
+						$('#contractcc').datagrid('reload');
+					} else {
+						alert("提交失败！");
+					}
+				}
+
+			})
+		} else {
+			alert("此服务已提交过了")
+		}
+	} else {
+		alert("你还未选择你要提交的服务")
+	}
+}
+$(function() {
+	$(document).keyup(function(k) {
+		if (k.keyCode == 27) {
+			$(".wins").each(function(i, e) {
+				if ($(e).css("display") == "block") {
+					$('#' + e.id).window("close");
+				}
+			})
+		}
+	})
+})
+
+function search() {
+	$("#contractcc").datagrid("load", {
+		name : $("#hetonname").val(),
+		type : $("#httyp").val(),
+		state : $("#htstate").val()
+	})
+}

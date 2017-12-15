@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.CompeteManageDao">
+	
+  <resultMap type="com.lxit.crmsystem.entity.CompeteManage" id="competeManagMap">
+     <id property="competId" column="compet_id" />
+     <result property="competTitle" column="competTitle" />
+     <result property="competResult" column="compet_result" />
+     <result property="competType" column="compet_type" />
+     <result property="competState" column="compet_state" />
+     <result property="competCreateTime" column="compet_createTime" />
+     <result property="competUpdateTime" column="compet_updateTime" />
+     <result property="competSid" column="compet_s_id" />
+     <result property="competUpdateSid" column="compet_updateSid" />
+  </resultMap>
+  
+  <resultMap type="com.lxit.crmsystem.vo.CompeteManageVo" id="competeManagVoMap">
+     <id property="competId" column="compet_id" />
+     <result property="competTitle" column="competTitle" />
+     <result property="competResult" column="compet_result" />
+     <result property="competTypeValue" column="competTypeValue" />
+     <result property="competStateValue" column="competStateValue" />
+     <result property="competCreateTime" column="compet_createTime" />
+     <result property="competUpdateTime" column="compet_updateTime" />
+     <result property="competSName" column="competUpdateSName" />
+     <result property="competUpdateSName" column="competUpdateSName" />
+  </resultMap>
+  
+  <resultMap type="DataDictionary" id="DataDictionaryMapper">
+		<id property="dataId" column="data_id" />
+		<result property="dataCode" column="data_code" />
+		<result property="dataName" column="data_name" />
+		<result property="dataValue" column="data_value" />
+		<result property="dataCreateTime" column="data_createTime" />
+		<result property="dataUpdateTime" column="data_updateTime" />
+		<result property="dataSid" column="data_s_id" />
+	</resultMap>
+	
+	<select id="queryState" resultMap="DataDictionaryMapper">
+		SELECT * FROM datadictionary WHERE data_code = 'complete_state'
+	</select>
+	
+	<select id="queryType" resultMap="DataDictionaryMapper">
+		SELECT * FROM datadictionary WHERE data_code = 'complate_type'
+	</select>
+	
+	<insert id="addCompete" parameterType="com.lxit.crmsystem.entity.CompeteManage">
+          INSERT INTO competemanage (
+			compet_result,
+			compet_type,
+			compet_state,
+			compet_createTime,
+			compet_updateTime,
+			compet_s_id,
+			compet_updateSid,
+			competTitle
+		)values(
+		    #{competResult},
+		    #{competType},
+		    #{competState},
+		    now(),
+		    now(),
+		    #{competSid},
+		    #{competUpdateSid},
+		    #{competTitle}
+		)
+	 
+	</insert>
+	
+	<select id="getById" resultMap="competeManagVoMap" parameterType="int">
+	    SELECT c.*,s.s_name AS competSName,
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_state) competStateValue,
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_type) competTypeValue
+ 		FROM competemanage c INNER JOIN staff s ON c.compet_s_id=s.s_id where compet_id=#{competId}
+	</select>
+	
+	<!-- 归档 -->
+	<update id="updateState" parameterType="int">
+	    UPDATE competemanage SET compet_state=90 WHERE compet_id=#{0}
+	</update>
+	
+	
+	<update id="updateCompete" parameterType="com.lxit.crmsystem.entity.CompeteManage">
+	     UPDATE competemanage
+			 SET competTitle = #{competTitle},
+			 compet_result = #{competResult},
+			 compet_s_id = #{competSid},
+			 compet_updateSid = #{competUpdateSid}
+	      where compet_id=#{0}
+	</update>
+	
+	
+	
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+        SELECT COUNT(1),
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_state) competStateValue,
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_type) competTypeValue
+ 		FROM competemanage c INNER JOIN staff s ON c.compet_s_id=s.s_id
+        where 1=1
+        <if test="array[0] !=null and array[0] !='' ">
+            and c.compet_createTime like concat('%',#{array[0]},'%')
+        </if>
+      
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="competeManagVoMap">
+      	SELECT c.*,s.s_name AS competSName,
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_state) competStateValue,
+        (SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.compet_type) competTypeValue
+ 		FROM competemanage c INNER JOIN staff s ON c.compet_s_id=s.s_id
+        where 1=1
+	  <if test="date != null and date != '' ">
+	     and c.compet_createTime like concat('%',#{date},'%') 
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+
+  </select>
+
+ 
+  
+</mapper>

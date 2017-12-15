@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ClientDao">
+	<resultMap type="Client" id="ClientMapper">
+		<id property="clientId" column="client_id" />
+		<result property="clientName" column="client_name" />
+		<result property="clientSex" column="client_sex" />
+		
+		<result property="clientType" column="client_type" />
+		<result property="clientState" column="client_state" />
+		<result property="clientAssignstate" column="client_assignstate" />
+		
+		<result property="clientCreateTime" column="client_createTime" />
+		<result property="clientUpdateTime" column="client_updateTime" />
+		
+		<result property="clientSid" column="client_s_id" />
+		<result property="clientUpdateSid" column="client_update_s_id" />
+		
+		<result property="clientPhone" column="client_phone" />
+		<result property="clientWorkphone" column="client_workphone" /> 
+		<result property="clientHomephone" column="client_homephone" />
+		<result property="clientAddress" column="client_address" />
+		<result property="clientRemark" column="client_remark" />
+		<result property="clientEmail" column="client_email" />
+		<result property="clientBirthday" column="client_birthday" />
+		<result property="clientCoding" column="client_coding" />
+		
+		<result property="clientAllot" column="client_allot" />
+		<result property="clientLv" column="client_lv" />
+		<result property="clientServid" column="client_servid" />
+	</resultMap>
+	
+	
+	<resultMap type="com.lxit.crmsystem.vo.Clients" id="ClientsMapper">
+		<id property="clientId" column="client_id" />
+		<result property="clientName" column="client_name" />
+		<result property="clientSex" column="client_sex" />
+		
+		<result property="clientType" column="client_type" />
+		<result property="clientState" column="client_state" />
+		<result property="clientAssignstate" column="client_assignstate" />
+		
+		<result property="clientCreateTime" column="client_createTime" />
+		<result property="clientUpdateTime" column="client_updateTime" />
+		
+		<result property="clientSid" column="staffName" />
+		<result property="clientUpdateSid" column="client_update_s_id" />
+		
+		<result property="clientPhone" column="client_phone" />
+		<result property="clientWorkphone" column="client_workphone" /> 
+		<result property="clientHomephone" column="client_homephone" />
+		<result property="clientAddress" column="client_address" />
+		<result property="clientRemark" column="client_remark" />
+		<result property="clientEmail" column="client_email" />
+		<result property="clientBirthday" column="client_birthday" />
+		<result property="clientCoding" column="client_coding" />
+		
+		<result property="clientAllot" column="client_allot" />
+		<result property="clientLv" column="client_lv" />
+		<result property="clientServid" column="client_servid" />
+		
+		<result property="counts" column="count" />
+		<result property="moneys" column="money" />
+		
+		<result property="clReputationrank" column="clReputationranks" />		
+		
+	</resultMap>
+	
+
+	<insert id="insert" parameterType="Client" useGeneratedKeys="true" keyProperty="clientId">
+		INSERT INTO client (
+			client_name,
+			client_sex,
+			client_type,
+			client_state,
+			client_assignstate,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_servid,
+			client_birthday,
+			client_coding
+		)
+		VALUES
+			(
+				#{clientName},
+				#{clientSex},
+				#{clientType},
+				#{clientState},
+				#{clientAssignstate},
+				#{clientCreateTime},
+				#{clientUpdateTime},
+				#{clientSid},
+				#{clientUpdateSid},
+				#{clientPhone},
+				#{clientWorkphone},
+				#{clientHomephone},
+				#{clientAddress},
+				#{clientRemark},
+				#{clientEmail},
+				#{clientAllot},
+				#{clientLv},
+				#{clientServid},
+				#{clientBirthday},
+				#{clientCoding}
+			)
+	</insert>
+	
+	<delete id="delete" parameterType="int">
+		delete from client where client_id=#{clientId};
+	</delete>
+
+	<!-- 查到id然后修改 -->
+	<select id="queryClientById" parameterType="int" resultMap="ClientsMapper">
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_birthday,
+			client_coding,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				where d.data_id = c.client_type 
+			) clientType,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_state
+			) clientState,
+		    (
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_assignstate
+			) clientAssignstate,
+		    (
+				SELECT
+					s.serve_id
+				FROM
+					serve s
+				WHERE c.client_servid=s.serve_id
+			) serveId,
+		    (
+				SELECT
+				st.s_name
+				FROM
+				staff st
+				WHERE st.s_id = c.client_s_id
+			) staffName
+		FROM
+			client c
+		WHERE c.client_id=#{clientId}
+	</select>
+	
+	<update id="update" parameterType="Client">
+		UPDATE client set 
+			client_name=#{clientName},
+			client_sex=#{clientSex},
+			client_type=#{clientType},
+			client_state=#{clientState},
+			client_assignstate=#{clientAssignstate},
+			client_createTime=#{clientCreateTime},
+			client_updateTime=#{clientUpdateTime},
+			client_s_id=#{clientSid},
+			client_update_s_id=#{clientUpdateSid},
+			client_phone=#{clientPhone},
+			client_workphone=#{clientWorkphone},
+			client_homephone=#{clientHomephone},
+			client_address=#{clientAddress},
+			client_remark=#{clientRemark},
+			client_email=#{clientEmail},
+			client_allot=#{clientAllot},
+			client_lv=#{clientLv},
+			client_servid=#{clientServid},
+			client_birthday=#{clientBirthday},
+			client_coding=#{clientCoding}
+		WHERE client_id=#{clientId}				
+	</update>
+	
+	
+	<!-- 页面查询 -->
+	<select id="query" parameterType="Map" resultMap="ClientsMapper">
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_birthday,
+			client_coding,  
+		    (
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				where d.data_id = c.client_type 
+			) clientType,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_state
+			) clientState,
+		    (
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_assignstate
+			) clientAssignstate,
+		    (
+				SELECT
+					s.serve_id
+				FROM
+					serve S
+				WHERE c.client_servid=s.serve_id
+			) serveId,
+			(
+				SELECT
+				st.s_name
+				FROM
+				staff st
+				WHERE st.s_id = c.client_s_id
+				) staffName
+		FROM
+			client c
+		WHERE c.client_s_id=#{clientId}
+		<if test="likeName!=null and likeName!=''">
+			and c.client_name like #{likeName}
+		</if>
+		<if test="likeState!=0 and likeState!=''">
+			and c.client_state=#{stateLike}
+		</if>
+		<if test="pageIndex!=0 and pageSize!=0">
+			LIMIT #{pageIndex},#{pageSize}	
+		</if>
+	
+	</select>
+	
+	<select id="getCount" parameterType="int" resultType="int">
+		select
+		count(1) from client c
+		WHERE c.client_s_id=#{clientId}
+	</select>
+		
+	
+	
+	
+
+	<!-- 客户价值管理页面查询 -->
+	<select id="queryValue" parameterType="Map" resultMap="ClientsMapper">		
+		
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_birthday,
+			client_coding, 
+		(
+			SELECT
+				d.data_value
+			FROM
+				datadictionary d
+			where d.data_id = c.client_type 
+		) clientType,
+
+		(
+			SELECT
+				COUNT(0)
+			FROM
+				indent i
+			WHERE
+				i.indent_client_id = c.client_id
+		) count,
+		(
+				SELECT
+					SUM(i.indent_countprice)
+				FROM
+					indent i
+				WHERE
+					i.indent_client_id = c.client_id
+		) money,
+		(
+			SELECT
+			st.s_name
+			FROM
+			staff st
+			WHERE st.s_id = c.client_s_id
+		) staffName
+				  FROM client c
+		WHERE c.client_s_id=#{clientId}
+		<if test="likeName!=null and likeName!=''">
+			and c.client_name like #{likeName}
+		</if>
+		<if test="likeType!=0 and likeType!=''">
+			and c.clientType=#{likeType}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}		
+		
+	</select>
+	
+	
+	<!-- 查到id然后修改 -->
+	<select id="queryValueById" parameterType="int" resultMap="ClientsMapper">
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_birthday,
+			client_coding,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				where d.data_id = c.client_type 
+			) clientType,
+			
+			(
+				SELECT
+					COUNT(0)
+				FROM
+					indent i
+				WHERE
+					i.indent_client_id = c.client_id
+			) count,
+			(
+					SELECT
+						SUM(i.indent_countprice)
+					FROM
+						indent i
+					WHERE
+						i.indent_client_id = c.client_id
+			) money,
+			
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_state
+			) clientState,
+		    (
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE d.data_id = c.client_assignstate
+			) clientAssignstate,
+		    (
+				SELECT
+					s.serve_id
+				FROM
+					serve s
+				WHERE c.client_servid=s.serve_id
+			) serveId,
+		    (
+				SELECT
+				st.s_name
+				FROM
+				staff st
+				WHERE st.s_id = c.client_s_id
+			) staffName
+		FROM
+			client c
+		WHERE c.client_id=#{clientId}
+	</select>
+	
+	
+	
+	
+	
+	<!-- 客户信誉管理页面查询 -->
+	<select id="queryReputation" parameterType="Map" resultMap="ClientsMapper">		
+		
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_createTime,
+			client_updateTime,
+			client_s_id,
+			client_update_s_id,
+			client_phone,
+			client_workphone,
+			client_homephone,
+			client_address,
+			client_remark,
+			client_email,
+			client_allot,
+			client_lv,
+			client_birthday,
+			client_coding, 
+		(
+			SELECT
+				d.data_value
+			FROM
+				datadictionary d
+			where d.data_id = c.client_type 
+		) clientType,
+
+		(
+			SELECT
+				COUNT(0)
+			FROM
+				indent i
+			WHERE
+				i.indent_client_id = c.client_id
+		) count,
+		(
+				SELECT
+					cl.cl_reputationrank
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) clReputationranks
+				  FROM client c
+		WHERE c.client_s_id=#{clientId}
+		<if test="likeName!=null and likeName!=''">
+			and c.client_name like #{likeName}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}		
+		
+	</select>
+	
+	
+	<!-- 查到id然后修改 -->
+	<select id="queryReputationById" parameterType="int" resultMap="ClientsMapper">
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				where d.data_id = c.client_type 
+			) clientType,
+			
+			(
+				SELECT
+					COUNT(0)
+				FROM
+					indent i
+				WHERE
+					i.indent_client_id = c.client_id
+			) count,			
+		    (
+				SELECT
+					cl.cl_reputationrank
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) clReputationranks
+		FROM
+			client c
+		WHERE c.client_id=#{clientId}
+	</select>
+		
+</mapper>

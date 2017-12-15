@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ContractDao">
+	<sql id="BaseDic">
+		<![CDATA[
+			SELECT
+				datas.data_id id,
+				datas.data_code code ,
+				datas.data_value value
+			FROM
+				datadictionary datas
+			WHERE
+				datas.data_code = #{code};
+		]]>
+	</sql>
+	<select id="queryType" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewIdentType">
+		<if test="code!=null and code!=''">
+			<include refid="BaseDic" />
+		</if>
+	</select>
+	<select id="queryState" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewIdentType">
+		<if test="code!=null and code!=''">
+			<include refid="BaseDic" />
+		</if>
+	</select>
+	<insert id="addContract" parameterType="java.util.Map">
+		<![CDATA[
+			INSERT INTO `crm`.`contract` (`contract_id`, `contract_type`, `contract_title`, `contract_state`, `contract_createTime`, `contract_updateTime`, `contract_createSid`, `contract_updateSid`, `contract_waithandle`, `contract_money`, `contract_owner`, `contract_sp`, `contract_ownerlicence`, `contract_splicence`, `contract_content`, `contract_remark`) VALUES (NULL,#{type}, #{name},14,now(), now(),#{sid},#{sid},#{did},#{price}, #{jia}, #{yi}, #{jiaqz}, #{yiqz}, #{context}, #{remark});
+		]]>
+	</insert>
+	<sql id="outPare">
+		<![CDATA[
+			c.contract_id AS id,
+			c.contract_title AS title,
+			(
+				SELECT
+					ds.data_value
+				FROM
+					datadictionary ds
+				WHERE
+					ds.data_id = c.contract_state
+			) AS state,
+			(
+				SELECT
+					ds.data_value
+				FROM
+					datadictionary ds
+				WHERE
+					ds.data_id = c.contract_type
+			) AS type,
+			c.contract_createTime AS time,
+			(
+				SELECT
+					st.s_name
+				FROM
+					staff st
+				WHERE
+					st.s_id = c.contract_waithandle
+			) AS dai
+		]]>
+	</sql>
+	<sql id="count">
+		count(0)
+	</sql>
+	<sql id="page">
+		<![CDATA[
+			LIMIT #{page},#{rows} 
+		]]>
+	</sql>
+	<sql id="fallchoose">
+		<![CDATA[
+			SELECT
+		]]>
+			<choose>
+				<when test="counts==null">
+					<include refid="outPare"/>
+				</when>
+				<otherwise>
+					<include refid="count"/>
+				</otherwise>
+			</choose>				
+		<![CDATA[
+			FROM
+				contract c,
+				staff s
+			WHERE
+				c.contract_waithandle = s.s_id
+		]]>
+		<if test="name!=null and name!=''">
+			<bind name="likename" value="'%'+name+'%'"/>
+			<![CDATA[
+				AND c.contract_title like #{likename}
+ 			]]>	
+		</if>
+		<if test="state!=null and state!=''">
+			<![CDATA[
+				AND c.contract_state=#{state}
+			]]>	
+		</if>
+		<if test="type!=null and type!=''">
+			<![CDATA[
+				AND c.contract_type=#{type}
+			]]>	
+		</if>
+		<if test="counts!=null">
+			<include refid="page"/>
+		</if>
+	</sql>
+	
+	<select id="contractQuery" parameterType="java.util.Map" resultType="com.lxit.crmsystem.vo.ViewContract">
+		<include refid="fallchoose"/>
+	</select>
+	<select id="contractQueryCount" parameterType="java.util.Map" resultType="int">
+		<include refid="fallchoose"/>
+	</select>
+	
+	<!-- 条件判断 -->
+	<sql id="whereAll">
+		<if test="name!=null and name!=''">
+			<bind name="whereall" value="'%'+name+'%'"/>
+			<![CDATA[
+				WHERE contract_state not in(14,15,24)
+				AND c.contract_title like #{whereall}
+				OR(
+					c.contract_type = d1.data_id
+					AND d1.data_value like #{whereall}
+				)
+				OR (c.contract_state = d1.data_id
+					AND d1.data_value like #{whereall}
+				) 
+ 			]]>	
+		</if>
+	</sql>
+	<select id="selectContract" parameterType="java.util.Map" resultType="com.lxit.crmsystem.vo.ViewContract">
+		SELECT 
+		<include refid="outPare"/>
+		<![CDATA[
+		 FROM contract c ,datadictionary d1 
+		 ]]>	
+		<include refid="whereAll"/> 
+		<include refid="page"/>
+	</select>
+	
+	<select id="selectContractCount" parameterType="java.util.Map" resultType="int">
+		SELECT 
+		<include refid="count"/>
+		 <![CDATA[
+		 FROM contract c ,datadictionary d1 
+		 ]]>
+		 <include refid="whereAll"/>
+	</select>
+	
+</mapper>

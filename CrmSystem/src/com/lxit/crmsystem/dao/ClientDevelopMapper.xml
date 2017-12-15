@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ClientDevelopDao">
+	<resultMap type="ClientDevelop" id="ClientDevelopMapper">
+		<id property="cdId" column="cd_id" />
+		<result property="cdPlanCoding" column="cd_planCoding" />
+		<result property="cdName" column="cd_name" />
+		
+		<result property="cdMonth" column="cd_month" />
+		<result property="cdCreateTime" column="cd_createTime" />
+		<result property="cdUpdateTime" column="cd_updateTime" />
+		
+		<result property="cdPlanContent" column="cd_planContent" />
+		<result property="cdUpdateSid" column="cd_updateSid" />
+		
+	</resultMap>
+	
+	<resultMap type="com.lxit.crmsystem.vo.ClientDevelopVo" id="ClientDevelopVoMapper">
+		<id property="cdId" column="cd_id" />
+		<result property="cdPlanCoding" column="cd_planCoding" />
+		<result property="cdName" column="cd_name" />
+		
+		<result property="cdMonth" column="cd_month" />
+		<result property="cdCreateTime" column="cd_createTime" />
+		<result property="cdUpdateTime" column="cd_updateTime" />
+		
+		<result property="cdPlanContent" column="cd_planContent" />
+		<result property="cdUpdateSid" column="staffName" />
+		
+	</resultMap>
+	
+	<insert id="insert" parameterType="ClientDevelop">
+		INSERT INTO clientdevelop (
+			cd_planCoding,
+			cd_name,
+			cd_month,
+			cd_createTime,
+			cd_updateTime,
+			cd_planContent,
+			cd_updateSid
+		)
+		VALUES
+			(
+				#{cdPlanCoding},
+				#{cdName},
+				#{cdMonth},
+				#{cdCreateTime},
+				#{cdUpdateTime},
+				#{cdPlanContent},
+				#{cdUpdateSid}	
+			)
+	</insert>
+	
+	<delete id="delete" parameterType="int">
+		delete from clientdevelop where cd_id=#{cd_id}
+	</delete>	
+	
+	<select id="query" parameterType="Map" resultMap="ClientDevelopVoMapper">
+		SELECT
+			cd_id,
+			cd_planCoding,
+			cd_name,
+			cd_month,
+			cd_createTime,
+			cd_updateTime,
+			cd_planContent,
+			cd_updateSid,
+			(
+				SELECT
+				st.s_name
+				FROM
+				staff st
+				WHERE st.s_id = cd.cd_updateSid
+				) staffName
+		FROM
+			clientdevelop cd
+		WHERE cd.cd_updateSid=#{cdUpdateSid}
+		<if test="likeMonth!=null and likeMonth!=''">
+			and cd.cd_month like #{likeMonth}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}	
+	</select>
+	
+	<select id="getCount" parameterType="int" resultType="int">		
+		select
+		count(1) from clientdevelop cd
+		WHERE cd.cd_updateSid=#{cd_updateSid}
+	</select>
+	
+	
+	
+	<!-- 查到id然后修改 -->
+	<select id="queryClientDevelopById" parameterType="int" resultMap="ClientDevelopVoMapper">
+		SELECT
+			cd_id,
+			cd_planCoding,
+			cd_name,
+			cd_month,
+			cd_createTime,
+			cd_updateTime,
+			cd_planContent,
+			cd_updateSid,
+			(
+				SELECT
+				st.s_name
+				FROM
+				staff st
+				WHERE st.s_id = cd.cd_updateSid
+				) staffName
+		FROM
+			clientdevelop cd
+		WHERE cd.cd_id=#{cdId}
+	</select>
+	
+	<update id="update" parameterType="ClientDevelop">
+		UPDATE clientdevelop set 
+			cd_planCoding=#{cdPlanCoding},
+			cd_name=#{cdName},
+			cd_month=#{cdMonth},
+			cd_createTime=#{cdCreateTime},
+			cd_updateTime=#{cdUpdateTime},
+			cd_planContent=#{cdPlanContent},
+			cd_updateSid=#{cdUpdateSid}	
+		WHERE cd_id=#{cdId}			
+	</update>
+	
+	
+		
+</mapper>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.MarketPmDao">
+   
+  <resultMap type="com.lxit.crmsystem.entity.MarketPm" id="markerPmMap">
+     <id property="marketPmId" column="pm_id" />
+     <result property="marketPmCoding" column="pm_conding" />
+     <result property="staffId" column="pm_s_id" />
+     <result property="marketPmLv" column="pm_lv" />
+     <result property="marketPmRemark" column="pm_remark" />
+     <result property="marketPmCreateTime" column="pm_createTime" />
+     <result property="marketPmUpdateTime" column="pm_updateTime" />
+      <result property="departId" column="departId" />
+     <result property="operateId" column="operateId" />
+  </resultMap>
+  
+  <resultMap type="com.lxit.crmsystem.vo.MarketPmVo" id="markerPmPoMap">
+     <id property="marketPmId" column="pm_id" />
+     <result property="marketPmCoding" column="pm_conding" />
+     <result property="staffId" column="pm_s_id" />
+     <result property="marketPmLv" column="pm_lv" />
+     <result property="marketPmRemark" column="pm_remark" />
+     <result property="marketPmCreateTime" column="pm_createTime" />
+     <result property="marketPmUpdateTime" column="pm_updateTime" />
+     <result property="marketPmSName" column="marketPmSName" />
+     <result property="departName" column="operateName" />
+     <result property="operateName" column="operateName" />
+  </resultMap>
+  <resultMap type="com.lxit.crmsystem.vo.Staffs" id="StaffMapper">
+		<id property="staffId" column="s_id" />
+		<result property="staffName" column="s_name" />
+		<result property="staffPass" column="s_pass" />
+		<result property="staffCoding" column="s_coding" />
+		<result property="staffSex" column="s_sex" />
+		<result property="staffState" column="s_state" />
+		<result property="departmentName" column="departmentName" />
+		<result property="roleName" column="roleName" />
+		<result property="staffRemark" column="s_remark" />
+		<result property="staffLastUpdateTime" column="s_lastUpdateTime" />
+		<result property="staffCreateTiem" column="s_createTime" />
+		<result property="standby" column="standby" />
+		<result property="staffLoginName" column="s_loginName" />
+		<result property="staffUpdateSid" column="s_updateSid" />
+		<result property="staffUpdateName" column="staffUpdateName" />
+		<result property="departmentId" column="d_id" />
+		<result property="staffNid" column="staffNid" />
+		<result property="staffRid" column="staffRid" />
+	</resultMap>
+	
+  <insert id="addMarketPm" parameterType="com.lxit.crmsystem.entity.MarketPm">
+      INSERT INTO marketpm (
+	      pm_conding,
+	      pm_s_id,
+	      pm_lv,
+	      pm_remark,
+	      pm_createTime,
+	      pm_updateTime,
+	      operateId,
+	      departId)
+	  values(
+	    #{marketPmCoding},
+	    #{staffId},
+	    #{marketPmLv},
+	    #{marketPmRemark},
+	    #{marketPmCreateTime},
+	    #{marketPmUpdateTime},
+	    #{operateId},
+	    #{departId}
+	  )
+  </insert>
+  
+  <select id="getById" resultMap="markerPmPoMap" parameterType="int">
+      SELECT pm.*,s.s_name AS marketPmSName,d.d_fallName AS departName 
+      FROM staff s, marketpm pm,department d
+ 	  WHERE s.s_id=pm.pm_s_id AND d.d_id=s.d_id and pm.pm_id=#{0}
+  </select>
+  
+  <delete id="delMarketPm" parameterType="int">
+      delete from marketpm WHERE pm_id=#{0}
+  </delete>
+  
+  <update id="updateMarketPm" parameterType="com.lxit.crmsystem.entity.MarketPm">
+       UPDATE marketpm SET 
+	       pm_lv=#{marketPmLv},
+	       pm_updateTime=NOW(),
+	       pm_remark=#{marketPmRemark} 
+       WHERE pm_id=#{marketPmId}
+  </update>
+  
+  
+  <select id="listStaff" parameterType="int" resultMap="StaffMapper">
+		SELECT * 
+    	from staff s INNER JOIN department d ON s.d_id = d.d_id WHERE s.s_id in(
+		select sr.s_id from staff_role sr where sr.r_id in(
+		select r_id from role ro where ro.r_nid in(
+		select st.r_id from staff_role st WHERE st.s_id=#{bossId})));
+		
+	</select>
+  
+  <select id="getSumCount" resultType="int" parameterType="Object[]">
+      SELECT COUNT(1) FROM staff s, marketpm pm,department d
+	  WHERE s.s_id=pm.pm_s_id AND d.d_id=s.d_id 
+      <if test="array[0] !=null and array[0] !='' ">
+          and s.s_name like concat('%',#{array[0]},'%')
+      </if>
+  </select>
+  
+  <select id="selectByLike" parameterType="java.util.Map" resultMap="markerPmPoMap">
+      SELECT pm.*,s.s_name AS marketPmSName,d.d_fallName AS departName 
+      FROM staff s, marketpm pm,department d
+ 	  WHERE s.s_id=pm.pm_s_id AND d.d_id=s.d_id
+	  <if test="name != null and name != '' ">
+	     <!-- and s.s_name LIKE '%'#{name}'%' -->
+	     and s.s_name like concat('%',#{name},'%')
+	  </if>
+	  LIMIT #{pageIndex},#{pageSize}
+
+  </select>
+  
+	
+  
+  
+</mapper>

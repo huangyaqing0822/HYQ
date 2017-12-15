@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ClientLovingDao">
+	<resultMap type="ClientLoving" id="ClientLovingMapper">
+		<id property="clId" column="cl_id" />
+		<result property="clOpen" column="cl_open" />
+		<result property="clReputationrank" column="cl_reputationrank" />
+		
+		<result property="clLoveproject" column="cl_loveproject" />
+		<result property="clWarnname" column="cl_warnname" />
+		<result property="clWarntype" column="cl_warntype" />
+		
+		<result property="clWarntime" column="cl_warntime" />
+		<result property="clRate" column="cl_rate" />
+		<result property="clPeriod" column="cl_period" />
+		<result property="clRemarkremind" column="cl_remarkremind" />
+		<result property="clExecutiontime" column="cl_executiontime" />
+		<result property="clExecutionscheme" column="cl_executionscheme" />
+		<result property="clExecutionresult" column="cl_executionresult" />
+		<result property="clRemarkresult" column="cl_remarkresult" />
+		<result property="clUpdateSid" column="cl_updateSid" />
+	</resultMap>
+	
+	<resultMap type="com.lxit.crmsystem.vo.ClientLovingVo" id="ClientLovingVoMapper">
+		<id property="clientId" column="client_id" />
+		<result property="clOpen" column="cl_open" />
+		<result property="clReputationrank" column="cl_reputationrank" />
+		
+		<result property="clLoveproject" column="cl_loveproject" />
+		<result property="clWarnname" column="cl_warnname" />
+		<result property="clWarntype" column="cl_warntype" />
+		
+		<result property="clWarntime" column="cl_warntime" />
+		<result property="clRate" column="cl_rate" />
+		<result property="clPeriod" column="cl_period" />
+		<result property="clRemarkremind" column="cl_remarkremind" />
+		<result property="clExecutiontime" column="cl_executiontime" />
+		<result property="clExecutionscheme" column="cl_executionscheme" />
+		<result property="clExecutionresult" column="cl_executionresult" />
+		<result property="clRemarkresult" column="cl_remarkresult" />
+		<result property="clUpdateSid" column="cl_updateSid" />		
+		
+		<result property="clientName" column="client_name" />
+		<result property="clientSex" column="client_sex" />
+		<result property="clientType" column="clientType" />
+		<result property="clientLv" column="client_lv" />
+		<result property="csZtdegree" column="csZtdegree" />	
+		
+		<result property="clientBirthday" column="client_birthday" />	
+		<result property="clientState" column="clientState" />	
+		
+	</resultMap>
+	
+	
+	<!-- 页面查询 -->
+	<select id="query" parameterType="Map" resultMap="ClientLovingVoMapper">
+		SELECT
+			client_id,
+			client_name,
+			client_sex,
+			client_lv,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE
+					d.data_id = c.client_type
+			) clientType,
+			(
+				SELECT
+					cs.cs_ztdegree
+				FROM
+					clientsatisfied cs
+				WHERE
+					cs.cs_id = c.client_id
+			) csZtdegree,
+			(
+				SELECT
+					cl.cl_reputationrank
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) clReputationrank,
+			(
+				SELECT
+					cl.cl_warnname
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warnname,
+(
+				SELECT
+					cl.cl_executiontime
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_executiontime,
+(
+				SELECT
+					cl.cl_executionscheme
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_executionscheme,
+(
+				SELECT
+					cl.cl_executionresult
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_executionresult,
+			(
+				SELECT
+					cl.cl_warntime
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warntime,
+			(
+				SELECT
+					cl.cl_rate
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_rate,
+			(
+				SELECT
+					cl.cl_warntype
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warntype,
+			
+			(
+				SELECT
+					cl.cl_loveproject
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) clLoveproject
+			FROM
+				client c
+			WHERE
+			c.client_s_id = #{clId}
+			<if test="likeName!=null and likeName!=''">
+				and c.client_name like #{likeName}
+			</if>			
+			LIMIT #{pageIndex},#{pageSize}	
+	</select>
+	
+	<select id="getCount" parameterType="int" resultType="int">
+		select
+		count(1) from clientloving cl
+		WHERE cl.cl_updateSid=#{clId}
+	</select>
+	
+	
+	
+	
+	
+	
+	<select id="queryClientLovingById" parameterType="int" resultMap="ClientLovingVoMapper">
+		SELECT  
+			client_id,
+			client_name,
+			client_sex,
+			client_birthday,
+			client_lv,
+			(
+				SELECT
+					cl.cl_warntype
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warntype,
+(
+				SELECT
+					cl.cl_rate
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_rate,
+(
+				SELECT
+					cl.cl_period
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_period,
+			(
+				SELECT
+					cl.cl_warntime
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warntime,
+(
+				SELECT
+					cl.cl_remarkremind
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_remarkremind,
+(
+				SELECT
+					cl.cl_warnname
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) cl_warnname,
+			(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE
+					d.data_id = c.client_type
+			) clientType,
+		(
+				SELECT
+					d.data_value
+				FROM
+					datadictionary d
+				WHERE
+					d.data_id = c.client_state
+			) clientState,
+			(
+				SELECT
+					cs.cs_ztdegree
+				FROM
+					clientsatisfied cs
+				WHERE
+					cs.cs_id = c.client_id
+			) csZtdegree,
+			(
+				SELECT
+					cl.cl_reputationrank
+				FROM
+					clientloving cl
+				WHERE
+					cl.cl_id = c.client_id
+			) clReputationrank
+			FROM
+				client c
+			WHERE
+			c.client_id = #{clId}
+	</select>
+	
+	
+	
+	
+	
+	<insert id="insert" parameterType="ClientLoving" useGeneratedKeys="true" keyProperty="clId">			
+			INSERT INTO clientloving (
+			cl_reputationrank,
+			cl_loveproject,
+			cl_warnname,
+			cl_warntype,
+			cl_warntime,
+			cl_rate,
+			cl_period,
+			cl_remarkremind,
+			cl_executiontime,
+			cl_executionscheme,
+			cl_executionresult,
+			cl_remarkresult,
+			cl_updateSid
+		)
+		VALUES
+			(		
+				#{clReputationrank},
+				#{clLoveproject},
+				#{clWarnname},
+				#{clWarntype},
+				#{clWarntime},
+				#{clRate},
+				#{clPeriod},
+				#{clRemarkremind},
+				#{clExecutiontime},
+				#{clExecutionscheme},
+				#{clExecutionresult},
+				#{clRemarkresult},
+				#{clUpdateSid}
+		 
+			)
+	</insert>
+	
+	
+	<delete id="delete" parameterType="int">
+		delete from clientloving where cl_id=#{clId};
+	</delete>
+	
+	
+	<update id="update" parameterType="ClientLoving">
+		UPDATE clientloving set 
+			cl_reputationrank=#{clReputationrank},
+			cl_loveproject=#{clLoveproject},
+			cl_warnname=#{clWarnname},
+			cl_warntype=#{clWarntype},
+			cl_warntime=#{clWarntime},
+			cl_rate=#{clRate},
+			cl_period=#{clPeriod},
+			cl_remarkremind=#{clRemarkremind},
+			cl_executiontime=#{clExecutiontime},
+			cl_executionscheme=#{clExecutionscheme},
+			cl_executionresult=#{clExecutionresult},
+			cl_remarkresult=#{clRemarkresult},
+			cl_updateSid=#{clUpdateSid}
+		WHERE cl_id=#{clId}
+		
+	</update>
+	
+		
+</mapper>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.StaffDao">
+	<resultMap type="com.lxit.crmsystem.vo.Staffs" id="StaffMapper">
+		<id property="staffId" column="s_id" />
+		<result property="staffName" column="s_name" />
+		<result property="staffPass" column="s_pass" />
+		<result property="staffCoding" column="s_coding" />
+		<result property="staffSex" column="s_sex" />
+		<result property="staffState" column="s_state" />
+		<result property="departmentName" column="departmentName" />
+		<result property="roleName" column="roleName" />
+		<result property="staffRemark" column="s_remark" />
+		<result property="staffLastUpdateTime" column="s_lastUpdateTime" />
+		<result property="staffCreateTiem" column="s_createTime" />
+		<result property="standby" column="standby" />
+		<result property="staffLoginName" column="s_loginName" />
+		<result property="staffUpdateSid" column="s_updateSid" />
+		<result property="staffUpdateName" column="staffUpdateName" />
+		<result property="departmentId" column="d_id" />
+		<result property="stanftephone" column="s_tephone"/>
+		<result property="staffNid" column="staffNid" />
+		<result property="staffRid" column="staffRid" />
+	</resultMap>
+
+	<select id="queryByIdAndPass" resultMap="StaffMapper"
+		parameterType="Map">	
+		SELECT
+		s.*,d.d_fallName as departmentName,r.r_name as
+		roleName,r.r_nid as "staffNid",r.r_id as "staffRid"
+		,d.d_id AS "departmentId"
+		FROM
+		staff s
+		INNER JOIN
+		department d
+		ON
+		s.d_id=d.d_id
+		INNER JOIN
+		staff_role sr
+		ON
+		s.s_id=sr.s_id
+		INNER JOIN
+		role r
+		ON
+		sr.r_id=r.r_id
+		WHERE
+		s.s_loginName= #{name}
+		AND
+		s.s_pass=#{pass}
+		
+	</select>
+	
+	<insert id="insertRoleStaff" parameterType="Map">
+		INSERT INTO staff_role VALUES(#{rid},#{sid});
+	</insert>
+	
+	<insert id="insertStaff" parameterType="com.lxit.crmsystem.entity.Staff" >
+		INSERT INTO `staff` (`s_id`, `s_name`, `s_pass`, `s_coding`, `s_sex`, `s_state`, `d_id`, `s_remark`, `s_lastUpdateTime`, `s_createTime`, `standby`, `s_loginName`, `s_updateSid`) 
+		VALUES (null,#{staffName} ,#{staffPass} ,#{staffCoding} ,#{staffSex},#{staffState} ,#{departmentId} ,#{staffRemark} ,#{staffLastUpdateTime},#{staffCreateTiem}, '',#{staffLoginName} ,#{staffUpdateSid} );
+		
+	</insert>
+	<insert id="updateStaff" parameterType="com.lxit.crmsystem.entity.Staff" >
+		UPDATE `staff` SET  `s_sex`=#{staffSex}, `s_state`=#{staffState}, `d_id`=#{departmentId}, `s_remark`=#{staffRemark}, `s_lastUpdateTime`=#{staffLastUpdateTime},  `s_updateSid`=#{staffUpdateSid} 
+		WHERE (`s_id`=#{staffId});
+	</insert>
+	<delete id="deleteTwo" parameterType="int">
+		<![CDATA[ 
+			DELETE FROM `staff_role` WHERE s_id = #{id};
+		]]>
+	</delete>
+	<delete id="deleteStaff" parameterType="int">
+		<![CDATA[
+			DELETE FROM `staff` WHERE s_id = #{id};
+		]]>
+	</delete>
+	<select id="selectStaff" resultMap="StaffMapper" parameterType="Map">
+		SELECT
+		s.*,d.d_fallName as departmentName,r.r_name as roleName,
+		(SELECT
+		s_name FROM staff where s_id = s.s_updateSid) AS "staffUpdateName"
+		FROM
+		staff s
+		Left JOIN
+		department d
+		ON
+		s.d_id=d.d_id
+		Left JOIN
+		staff_role
+		sr
+		ON
+		s.s_id=sr.s_id
+		Left JOIN
+		role r
+		ON
+		sr.r_id=r.r_id
+		WHERE 1=1
+		<if test="staffName !=null and staffName!=''">
+			and s.s_name like #{staffName}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+
+	<select id="selectStaffCount" resultType="int" parameterType="Map">
+		SELECT
+		COUNT(1)
+		FROM
+		staff s
+		INNER JOIN
+		department d
+		ON
+		s.d_id=d.d_id
+		INNER
+		JOIN
+		staff_role
+		sr
+		ON
+		s.s_id=sr.s_id
+		INNER JOIN
+		role r
+		ON
+		sr.r_id=r.r_id
+		WHERE
+		1=1
+		<if test="staffName !=null and staffName!=''">
+			and s.s_name like #{staffName}
+		</if>
+	</select>
+	<select id="selectStaffs" parameterType="int" resultMap="StaffMapper">
+	<!-- 20:15因为BUG将Inner join 和 改成Left Join -->
+		SELECT
+		s.*,d.d_fallName as departmentName,r.r_name as roleName,
+		(SELECT s_name FROM staff where s_id = s.s_updateSid) AS "staffUpdateName"
+		FROM
+		staff s
+		left JOIN
+		department d
+		ON
+		s.d_id=d.d_id
+		left JOIN
+		staff_role sr
+		ON
+		s.s_id=sr.s_id
+		left JOIN
+		role r
+		ON
+		sr.r_id=r.r_id
+		WHERE 1=1 AND s.s_id = #{id}
+	</select>
+	<select id="queryBoss" parameterType="int" resultMap="StaffMapper">
+		SELECT *
+		from staff s where s.s_id =(
+		select sr.s_id from staff_role sr WHERE
+		sr.r_id=(
+		select r.r_nid from role r where r.r_id =(
+		SELECT st.r_id FROM
+		staff_role st WHERE st.s_id =#{sid})))
+	</select>
+
+	<select id="queryStaff" parameterType="int" resultMap="StaffMapper">
+		SELECT *
+		from staff s WHERE s.s_id in(
+		select sr.s_id from staff_role sr where sr.r_id in(
+		select r_id from role ro where ro.r_nid in(
+		select st.r_id from staff_role st WHERE st.s_id=#{bossId})));
+	</select>
+</mapper>

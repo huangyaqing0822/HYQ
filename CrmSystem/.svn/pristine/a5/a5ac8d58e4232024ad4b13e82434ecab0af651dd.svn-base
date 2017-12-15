@@ -1,0 +1,286 @@
+$(function(){	
+	
+	$.ajax({
+		url:"../clientManagementAction/getClientVoing",
+		type:"post",
+		
+		success:function(result){
+			console.log(result);
+			if(result!=null){
+				$("span[name='clientName']").text(result.clientName);
+				$("span[name='clientSex']").text(result.clientSex);
+				$("span[name='clientType']").text(result.clientType);
+				$("span[name='clientState']").text(result.clientState);
+				$("span[name='csZtdegree']").text(result.csZtdegree);
+				$("span[name='clientLv']").text(result.clientLv);
+			}else{
+				alert("获取有误！")
+			}
+			
+		}
+	});	
+	
+	
+	
+	
+	
+	$("#loveDetails").datagrid({
+		url:"../clientManagementAction/queryLovingById", 
+		height:500,
+		fitColumns:true,
+		striped:true,
+		rownumbers:true,
+		border:false,
+		pagination:true,
+		
+		//分页
+		pageSize:10,
+		pageList:[10,20,30,40],
+		pageNumber:1,
+		toolbar:"manager_tool",
+		sortName:"date",
+		sortOrder:"desc",
+		
+		columns:[[
+		   {
+				field:"clientId",
+				title:"自动编号",
+				width:100,
+				checkbox:true,	 
+			},
+			{
+				field:"clWarnname",
+				title:"关怀名称",
+				width:100,
+			},
+			{
+				field:"clExecutiontime",
+				title:"执行时间",
+				width:100,
+			},
+			{
+				field:"clExecutionscheme",
+				title:"执行方案",
+				width:100,					 
+			},
+			{
+				field:"clExecutionresult",
+				title:"执行结果",
+				width:100,					 
+			},
+		]],
+	});
+	
+	
+	
+	 //添加框
+	$("#loveDetails_add").dialog({
+		width:600,
+		height:450,
+		title:"添加详情",
+		modal:true,
+		closed:true,
+		buttons:[{
+			text:"保存",
+			iconCls:"icon-add",
+			handler:function(){
+				alert(1234)
+				if($("#loveDetails_add").form("validate")){
+					$.ajax({
+						url:"../clientManagementAction/addLovingPost",
+						type:"post",
+						data:{
+							"clWarnname":$("input[name='clWarnname']").val(),
+							"clExecutiontime":$("input[name='clExecutiontime']").val(),
+							"clExecutionscheme":$("input[name='clExecutionscheme']").val(),
+							"clExecutionresult":$("input[name='clExecutionresult']").val(),
+							"clRemarkresult":$("#clRemarkresult").val(),					
+						},
+						success : function(result) {
+							$.messager.progress("close");
+							$.messager.show({
+								title:"提示",
+								msg:"添加提醒成功",
+							});
+							$("#loveDetails_add").dialog("close").form("reset");
+							$("#loveDetails").datagrid("reload");  
+						}
+					});
+				} 
+			},
+		},{
+			text:"返回",
+			iconCls:"icon-redo",
+			handler:function(){
+				$("#loveDetails_add").dialog("close").form("reset");
+			},
+		}],
+	});	
+	
+	//类型和状态的下拉框 权限
+	$("#clExecutionscheme").combobox({
+		url : "../DataDictionaryAction/queryData?dataCode=cl_executionscheme",
+		valueField:'dataId',
+		textField:'dataValue',
+		limitToList:'true',
+		panelHeight:'70px'
+	});
+	$("#clExecutionresult").combobox({
+		url : "../DataDictionaryAction/queryData?dataCode=cl_executionresult",
+		valueField:'dataId',
+		textField:'dataValue',
+		limitToList:'true',
+		panelHeight:'100px'
+		
+	});
+	
+	
+	//修改提交
+	 $("#loveRemind_edit").dialog({
+			width:600,
+			height:450,
+			title:"修改关怀提醒",
+			modal:true,
+			closed:true,
+			buttons:[{
+				text:"提交",
+				iconCls:"icon-edit",
+				handler:function(){
+					if($("#loveRemind_edit").form("validate")){
+						var rows = $('#loveRemind').datagrid('getSelections');
+						$.ajax({						
+							url:"../clientManagementAction/updateSubmitLovingPost",
+							type:"post",
+							data:{
+								clWarnname:$("input[name='clWarnname_edit']").val(),
+								clWarntime:$("input[name='clWarntime_edit']").val(),
+								clWarntype:$("input[name='clWarntype_edit']").val(),
+								clPeriod:$("input[name='clPeriod_edit']").val(),
+								clRate:$("input[name='clRate_edit']").val(),
+								clRemarkremind:$("input[name='clRemarkremind_edit']").val(),				
+							},
+							success : function(result) {	
+								alert(222)
+						    	console.log(result)
+						    	if(result == "clientResource"){
+						    		$.messager.confirm('提示操作','修改成功','warning');
+						    		$('#loveRemind_edit').dialog('close');
+									$('#loveRemind').datagrid('reload');  //到首页刷新
+						    	}else{
+									$.messager.confirm('提示操作','修改失败','warning');
+								}
+							}
+						});
+					}else{
+						alert("请填写完整信息")
+					} 
+				},
+			},{
+				text:"取消",
+				iconCls:"icon-redo",
+				handler:function(){
+					$("#loveRemind_edit").dialog("close").form("reset");
+				},
+			}], 
+		});
+	
+	
+	
+	manager_tool = {				
+			//新增
+			add:function(){
+				$("#loveDetails_add").dialog("open")	;
+				$("input[name='clWarnname']").focus();
+			},
+			
+			
+			
+			remove:function(){
+				var rows = $("#loveRemind").datagrid("getSelections");
+				if(rows.length == 1){
+					$.messager.confirm("确定操作","您确定要删除所选的记录吗？",function(flag){
+						if(flag){
+							console.log(rows);
+							alert(rows[0].clientId+"--///////////")
+							
+							$.ajax({
+								type:"post",
+								url:"../clientManagementAction/deleteLovingPost",
+								data:{
+									clId:rows[0].clientId
+								},
+								  
+								success:function(result){
+									alert(result+"==========")
+									 if(result == "true"){		
+										alert("删除成功")
+										$("#loveRemind").datagrid("reload"); //自动刷新	  
+									} else{
+										$.messager.confrim("提示操作","删除失败","warning");
+									}
+								},
+							});
+						}
+					});
+				}else{
+					$.messager.alert("提示","请选择要删除的记录","info");
+				}
+			}, 
+			
+			
+			
+			
+			edits:function(){
+				var rows = $("#loveRemind").datagrid("getSelections");
+				if(rows.length > 1){
+					$.messager.alert("警告操作！","编辑记录只能选定一条记录！","warning");
+				}else if(rows.length == 1){
+					alert("HHHHHHHHHHHHH"+rows[0].clientId);
+					$.ajax({
+						url:"../clientManagementAction/updateLovingPost2",
+						type:"post",
+						data:{
+							clientId:rows[0].clientId  
+						},
+					
+						success:function(result){
+							console.log(result);
+							if(result){
+								$('#loveRemind_edit').form('load',{
+									"clWarnname_edit":result.clWarnname,
+									"clWarntime_edit":result.clWarntime,
+									"clWarntype_edit":result.clWarntype,
+									"clPeriod_edit":result.clPeriod,
+									"clRate_edit":result.clRate,
+									"clRemarkremind_edit":result.clRemarkremind,									
+								}).dialog('open')
+							}
+							
+							//下拉框
+							$("#clWarntype_edit").combobox({
+								url : "../DataDictionaryAction/queryData?dataCode=cl_warntype",
+								valueField:'dataId',
+								textField:'dataValue',
+								limitToList:'true',
+								panelHeight:'70px'
+							});
+							$("#clRate_edit").combobox({
+								url : "../DataDictionaryAction/queryData?dataCode=cl_rate",
+								valueField:'dataId',
+								textField:'dataValue',
+								limitToList:'true',
+								panelHeight:'100px'
+								
+							});
+							
+							
+						}
+					});	
+				}else if(rows.length == 0){
+					$.messager.alert("警告操作！","编辑记录至少选定一条记录！","warning");
+				}
+			},
+			
+		};
+})
+

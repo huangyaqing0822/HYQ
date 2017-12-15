@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ServeDao">
+	<resultMap type="Serve" id="ServeMapper">
+		<id property="serveId" column="serve_id" />
+		<result property="serveName" column="serve_name" />
+		<result property="serveState" column="serve_state" />
+		<result property="serveType" column="serve_type" />
+		<result property="serveUpdateTime" column="serve_updateTime" />
+		<result property="serveCreateTime" column="serve_createTime" />
+		<result property="serveManageName" column="serve_manageName" />
+		<result property="serveStayhandle" column="serve_stayhandle" />
+		<result property="serveClientId" column="serve_clientId" />
+		<result property="servePhone" column="serve_phone" />
+		<result property="serveContent" column="serve_content" />
+		<result property="serveRemark" column="serve_remark" />
+	</resultMap>
+	<resultMap type="com.lxit.crmsystem.vo.ServeVo" id="ServeVoMapper">
+		<id property="serveId" column="serve_id" />
+		<result property="serveName" column="serve_name" />
+		<result property="dataValue" column="data_value" />
+		<result property="dataType" column="data_type" />
+		<result property="serveUpdateTime" column="serve_updateTime" />
+		<result property="serveCreateTime" column="serve_createTime" />
+		<result property="serveManageName" column="staffName" />
+		<result property="serveStayhandle" column="stayhandle" />
+		<result property="serveClientId" column="clientName" />
+		<result property="servePhone" column="serve_phone" />
+		<result property="serveContent" column="serve_content" />
+		<result property="serveRemark" column="serve_remark" />
+		<result property="serveType" column="serve_type" />
+	</resultMap>
+
+	<insert id="add" parameterType="Serve">
+		INSERT INTO serve (
+		serve_name,
+		serve_state,
+		serve_type,
+		serve_updateTime,
+		serve_createTime,
+		serve_manageName,
+		serve_stayhandle,
+		serve_clientId,
+		serve_phone,
+		serve_content,
+		serve_remark
+		)
+		VALUES
+		(
+		#{serveName},
+		#{serveState},
+		#{serveType},
+		#{serveUpdateTime},
+		#{serveCreateTime},
+		#{serveManageName},
+		#{serveStayhandle},
+		#{serveClientId},
+		#{servePhone},
+		#{serveContent},
+		#{serveRemark}
+		)
+	</insert>
+	<select id="query" parameterType="Map" resultMap="ServeVoMapper">
+		SELECT
+		s.serve_id,
+		s.serve_name,
+		serve_updateTime,
+		serve_createTime,
+		serve_phone,
+		serve_content,
+		serve_remark,
+		(
+		SELECT
+		d.data_value
+		FROM
+		datadictionary d
+		where d.data_id = s.serve_state
+		) data_value,
+		(
+		SELECT
+		d.data_value
+		FROM
+		datadictionary d
+		WHERE d.data_id = s.serve_type
+		)
+		data_type,
+		(
+		SELECT
+		st.s_name
+		FROM
+		staff st
+		WHERE st.s_id =
+		s.serve_manageName
+		) staffName,
+		(
+		SELECT
+		st.s_name
+		FROM
+		staff st
+		where
+		st.s_id = s.serve_stayhandle
+		) stayhandle,
+		(
+		SELECT
+		c.client_name
+		FROM
+		client c
+		WHERE client_id = s.serve_clientId
+		) clientName
+		FROM
+		serve s
+		<if test="flag==0">
+			WHERE s.serve_manageName=#{manageName}
+			
+		</if>
+		
+		<if test="flag==1">
+			WHERE s.serve_stayhandle=#{manageName}
+			and
+			(s.serve_state=37 or s.serve_state=62)
+		</if>
+		<if test="flag==2">
+			,staff s1 WHERE
+			s.serve_manageName = s1.s_id AND s1.d_id = #{departmentId}
+		</if>
+		<if test="flag==3">
+			WHERE s.serve_stayhandle=#{manageName}
+			and
+			(s.serve_state=38 or s.serve_state=63)
+		</if>
+		<if test="flag==4">
+			WHERE s.serve_manageName=#{manageName}
+			and
+			s.serve_state=39
+		</if>
+		<if test="likeName!=null and likeName!=''">
+			and s.serve_name like #{likeName}
+		</if>
+		<if test="likeType!=0 and likeType!=''">
+			and s.serve_type=#{likeType}
+		</if>
+		<if test="likeState!=0 and likeState!=''">
+			and s.serve_state=#{likeState}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+	<select id="getCount" parameterType="Map" resultType="int">
+		select
+		count(1) from serve s
+		<if test="flag==0">
+			WHERE s.serve_manageName=#{manageName}
+			
+		</if>
+		<if test="flag==1">
+			WHERE s.serve_stayhandle=#{manageName}
+			and (s.serve_state=37 or
+			s.serve_state=62)
+		</if>
+		<if test="flag==2">
+			,staff s1 WHERE
+			s.serve_manageName = s1.s_id AND s1.d_id = #{departmentId}
+		</if>
+		<if test="flag==3">
+			WHERE s.serve_stayhandle=#{manageName}
+			and
+			(s.serve_state=38 or s.serve_state=63)
+		</if>
+		<if test="flag==4">
+			WHERE s.serve_manageName=#{manageName}
+			and
+			s.serve_state=39
+		</if>
+		<if test="likeName!=null and likeName!=''">
+			and s.serve_name like #{likeName}
+		</if>
+		<if test="likeType!=0 and likeType!=''">
+			and s.serve_type=#{likeType}
+		</if>
+		<if test="likeState!=0 and likeState!=''">
+			and s.serve_state=#{likeState}
+		</if>
+	</select>
+
+	<delete id="delete" parameterType="int">
+		delete from serve where
+		serve_id=#{serveId}
+	</delete>
+
+	<select id="queryOne" parameterType="int" resultMap="ServeVoMapper">
+		SELECT
+		s.serve_id,
+		s.serve_name,
+		s.serve_type,
+		serve_updateTime,
+		serve_createTime,
+		serve_phone,
+		serve_content,
+		serve_remark,
+		(
+		SELECT
+		d.data_value
+		FROM
+		datadictionary d
+		where d.data_id = s.serve_state
+		) data_value,
+		(
+		SELECT
+		d.data_value
+		FROM
+		datadictionary d
+		WHERE d.data_id = s.serve_type
+		)
+		data_type,
+		(
+		SELECT
+		st.s_name
+		FROM
+		staff st
+		WHERE st.s_id =
+		s.serve_manageName
+		) staffName,
+		(
+		SELECT
+		st.s_name
+		FROM
+		staff st
+		where
+		st.s_id = s.serve_stayhandle
+		) stayhandle,
+		(
+		SELECT
+		c.client_name
+		FROM
+		client c
+		WHERE client_id = s.serve_clientId
+		) clientName
+		FROM
+		serve s
+		WHERE s.serve_id=#{serveId}
+	</select>
+	<update id="update" parameterType="Serve">
+		update serve set
+		serve_type=#{serveType},
+		serve_updateTime=#{serveUpdateTime},
+		serve_phone=#{servePhone},
+		serve_content=#{serveContent},
+		serve_remark=#{serveRemark}
+		where
+		serve_id=#{serveId}
+	</update>
+
+	<update id="updateState" parameterType="Map">
+		update serve set
+		serve_state=#{serveState},
+		serve_updateTime=#{updateDate},
+		serve_stayhandle=#{stayhandle},
+		serve_manageName=#{serveManageName}
+		where
+		serve_id=#{serveId}
+	</update>
+
+	<update id="updateHandle" parameterType="Serve">
+		update serve set
+		<if test="serveState==39">
+			serve_stayhandle=0,
+		</if>
+		serve_state=#{serveState},
+		serve_updateTime=#{serveUpdateTime},
+		serve_manageName=#{serveManageName},
+		serve_remark=#{serveRemark}
+		where
+		serve_id=#{serveId}
+	</update>
+</mapper>

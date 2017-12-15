@@ -1,0 +1,75 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+
+   <form id="add_qhy_compete" method="post" action="../addCompete" enctype="multipart/form-data" 
+    style = "padding-left: 100px;padding-top: 20px">
+	            销售管理 》》 竞争管理 》》  添加竞争分析记录
+	            
+	    ${message }
+		<table id="xh_table" style="padding-left: 70px;padding-top: 50px">
+			<tr>
+				<td>分析结果标题：</td>
+				<td>
+				<input type="text" name="competTitle" style="height:25px;padding:0 2px;width:240px;" /> 
+				*</td>
+			</tr>
+			<tr>
+				<td>分析时间：</td>
+				<td><input type="text" class="easyui-datebox" editable="false" name="competCreateTime" checked="checked" style="height:25px;padding:0 2px;width:250px;">
+			</tr>
+			<tr>
+				<td>分析类型：</td>
+				<td><input type="text" name="competTypeValue" id="competTypeValue" editable="false" 
+				style="height:25px;padding:0 2px;width:250px;">*</td>
+			</tr>
+			<tr>
+				<td>状态：</td>
+				<td><input type="text" name="competStateValue" disabled="false" id="competStateValue"
+				 value="未归档" style="height:25px;padding:0 2px;width:245px;">*</td>
+			</tr>
+			<tr>
+			    <td>导入数据</td>
+				<td><input type="file" name="file" value="导入"/></td>
+			</tr> 
+			<tr>
+			    <td> </td>
+				<td> </td>
+			</tr>
+			<tr>
+			    <td></td>
+				<td><input type="submit" value="提交"/></td>
+			</tr>
+		</table>
+	</form>
+	
+	<script type="text/javascript">
+	
+	    $(function(){
+	    	 //获取分析类型
+			 $('#competTypeValue').combobox({
+			    valueField : 'dataId',
+				textField : 'dataValue',
+				url:'../queryTypeCompete',
+		 	});
+	    	 
+			//获取状态
+			 /* $('#competStateValue').combobox({
+			    valueField : 'dataId',
+				textField : 'dataValue',
+				url:'../queryStateCompete',
+		 	}); */
+	    	
+	    	
+	    })   
+	 
+	</script>
+
+</body>
+</html>

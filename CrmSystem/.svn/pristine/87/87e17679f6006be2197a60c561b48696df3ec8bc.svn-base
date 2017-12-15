@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ContractDao">
+	<sql id="BaseDic">
+		<![CDATA[
+			SELECT
+				datas.data_id id,
+				datas.data_code code ,
+				datas.data_value value
+			FROM
+				datadictionary datas
+			WHERE
+				datas.data_code = #{code};
+		]]>
+	</sql>
+	<select id="queryType" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewIdentType">
+		<if test="code!=null and code!=''">
+			<include refid="BaseDic" />
+		</if>
+	</select>
+	<select id="queryState" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewIdentType">
+		<if test="code!=null and code!=''">
+			<include refid="BaseDic" />
+		</if>
+	</select>
+	<insert id="addContract" parameterType="java.util.Map">
+		<![CDATA[
+			INSERT INTO `crm`.`contract` (`contract_id`, `contract_type`, `contract_title`, `contract_state`, `contract_createTime`, `contract_updateTime`, `contract_createSid`, `contract_updateSid`, `contract_waithandle`, `contract_money`, `contract_owner`, `contract_sp`, `contract_ownerlicence`, `contract_splicence`, `contract_content`, `contract_remark`) VALUES (NULL,#{type}, #{name},14,now(), now(),#{sid},#{sid},#{did},#{price}, #{jia}, #{yi}, #{jiaqz}, #{yiqz}, #{context}, #{remark});
+		]]>
+	</insert>
+	<sql id="extra">
+		<![CDATA[
+			c.contract_owner jia,
+			c.contract_sp yi,
+			c.contract_splicence yiqz,
+			c.contract_ownerlicence jiaqz,
+			c.contract_content context,
+			c.contract_remark remark,
+			c.contract_money price,
+		]]>
+	</sql>
+	<sql id="outPare">
+		<include refid="extra" />
+		<![CDATA[
+			c.contract_id AS id,
+			c.contract_title AS title,
+			(
+				SELECT
+					ds.data_value
+				FROM
+					datadictionary ds
+				WHERE
+					ds.data_id = c.contract_state
+			) AS state,
+			(
+				SELECT
+					ds.data_value
+				FROM
+					datadictionary ds
+				WHERE
+					ds.data_id = c.contract_type
+			) AS type,
+			c.contract_createTime AS time,
+			(
+				SELECT
+					st.s_name
+				FROM
+					staff st
+				WHERE
+					st.s_id = c.contract_waithandle
+			) AS dai
+		]]>
+	</sql>
+	<sql id="count">
+		count(0)
+	</sql>
+	<sql id="page">
+		<![CDATA[
+			LIMIT #{page},#{rows} 
+		]]>
+	</sql>
+	<sql id="cds">
+		<![CDATA[
+			FROM
+				contract c,
+				staff s
+			WHERE
+				c.contract_waithandle = s.s_id
+		]]>
+	</sql>
+	<sql id="fallchoose">
+		<![CDATA[
+			SELECT
+		]]>
+		<choose>
+			<when test="counts==null">
+				<include refid="outPare" />
+			</when>
+			<otherwise>
+				<include refid="count" />
+			</otherwise>
+		</choose>
+		<include refid="cds" />
+		<if test="name!=null and name!=''">
+			<bind name="likename" value="'%'+name+'%'" />
+			<![CDATA[
+				AND c.contract_title like #{likename}
+ 			]]>
+		</if>
+		<if test="state!=null and state!=''">
+			<![CDATA[
+				AND c.contract_state=#{state}
+			]]>
+		</if>
+		<if test="type!=null and type!=''">
+			<![CDATA[
+				AND c.contract_type=#{type}
+			]]>
+		</if>
+		<if test="counts==null">
+			<include refid="page" />
+		</if>
+	</sql>
+	<select id="contractQuery" parameterType="java.util.Map" resultType="com.lxit.crmsystem.vo.ViewContract">
+		<include refid="fallchoose"/>
+	</select>
+	<select id="contractQueryCount" parameterType="java.util.Map"
+		resultType="int">
+		<include refid="fallchoose" />
+	</select>
+	<sql id="fallall">
+		<![CDATA[
+			SELECT 
+		]]>
+		<include refid="outPare" />
+		<include refid="cds" />
+		<if test="id!=null">
+			AND c.contract_id=#{id}
+		</if>
+	</sql>
+	<select id="contractQueryDetail" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewContract">
+		<include refid="fallall" />
+	</select>
+	<update id="update" parameterType="java.util.Map">
+		<![CDATA[
+			UPDATE `crm`.`contract`
+			SET
+			 `contract_type` = #{type},
+			 `contract_title` = #{name},
+			 `contract_updateTime` = NOW(),
+			 `contract_updateSid` = #{sid},
+			 `contract_money` = #{price},
+			 `contract_owner` = #{jia},
+			 `contract_sp` = #{yi},
+			 `contract_ownerlicence` = #{jiaqz},
+			 `contract_splicence` = #{yiqz},
+			 `contract_content` = #{context},
+			 `contract_remark` = #{remark}
+			WHERE
+				(`contract_id` = #{id});
+		]]>
+	</update>
+	<!-- -->
+	<delete id="delete" parameterType="int">
+		DELETE FROM contract WHERE
+		contract_id=#{id}
+	</delete>
+	<update id="updateState" parameterType="int">
+		UPDATE `crm`.`contract`
+		SET
+		contract_state=15 
+		WHERE contract_id = #{id};
+	</update>
+	
+	<!-- 条件判断 -->
+	<sql id="whereAll">
+		WHERE contract_state not in(14,15,24)
+		<if test="name!=null and name!=''">
+			<bind name="whereall" value="'%'+name+'%'"/>
+			<![CDATA[
+				
+				AND c.contract_title like #{whereall}
+				OR
+				(SELECT d1.data_value FROM datadictionary d1 WHERE c.contract_type = d1.data_id
+				AND c.contract_state not in(14,15,24)) 
+				like  #{whereall}
+								OR 
+				(SELECT d1.data_value FROM datadictionary d1 WHERE c.contract_state = d1.data_id
+				AND c.contract_state not in(14,15,24)) 
+				like  #{whereall}
+ 			]]>	
+		</if>
+	</sql>
+	<select id="selectContract" parameterType="java.util.Map" resultType="com.lxit.crmsystem.vo.ViewContract">
+		SELECT 
+		<include refid="outPare"/>
+		<![CDATA[
+		 FROM contract c 
+		 ]]>	
+		<include refid="whereAll"/> 
+		<include refid="page"/>
+	</select>
+	
+	<select id="selectContractCount" parameterType="java.util.Map" resultType="int">
+		SELECT 
+		<include refid="count"/>
+		 <![CDATA[
+		 FROM contract c 
+		 ]]>
+		 <include refid="whereAll"/>
+	</select>
+	<select id="selectOneCon" parameterType="int" resultType="com.lxit.crmsystem.vo.ViewContractTwo">
+		SELECT 
+		c.contract_title AS "parm1",
+		(SELECT d1.data_value FROM datadictionary d1 WHERE d1.data_id = c.contract_type) AS "parm2",
+		(SELECT d1.data_value FROM datadictionary d1 WHERE d1.data_id = c.contract_state) AS "parm3",
+		contract_createTime AS "parm4",
+		contract_updateTime AS "parm5",
+		(SELECT s1.s_name FROM staff s1 WHERE s1.s_id = c.contract_createSid) "parm6",
+		(SELECT s1.s_name FROM staff s1 WHERE s1.s_id = c.contract_updateSid ) "parm7",
+		(SELECT s1.s_name FROM staff s1 WHERE s1.s_id = c.contract_waithandle ) "parm8",
+		contract_money AS "parm9",
+		contract_sp AS "parm10",
+		contract_splicence AS "parm11",
+		contract_content AS "parm12",
+		contract_remark AS "parm13",
+		contract_id AS "parm14"
+		FROM contract c WHERE  c.contract_id =  #{id}
+	</select>
+	
+	<insert id="insertContractUpd" parameterType="com.lxit.crmsystem.vo.ViewContractTwo">
+		INSERT INTO `crm`.`contractUpd` 
+		(`contractId`, `contractRemark`, `contractState`, `staffId`, `createTime`)
+ 		VALUES (#{parm14}, #{parm10}, #{parm11}, #{parm13}, #{parm12})
+	</insert>
+
+	<update id="updateContr" parameterType="com.lxit.crmsystem.vo.ViewContractTwo">
+		UPDATE `crm`.`contract` SET   `contract_state`=#{parm11},
+		`contract_updateTime`=#{parm12},
+		 `contract_updateSid`=#{parm13}
+		 WHERE `contract_id`=#{parm14}
+	</update>
+	
+</mapper>

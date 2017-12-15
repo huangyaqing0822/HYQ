@@ -1,0 +1,22 @@
+package com.lxit.crmsystem.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.lxit.crmsystem.vo.ViewContract;
+import com.lxit.crmsystem.vo.ViewIdentType;
+
+public interface ContractService {
+
+	public List<ViewIdentType> queryType();
+
+	public List<ViewIdentType> queryState();
+
+	public int insert(Map<String, Object> map);
+
+	public Map<String, Object> contractQuery(Map<String, Object> map);
+	
+	public Map<String, Object> selectContract(Map<String, Object> map);
+	
+	
+}

@@ -1,0 +1,191 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import javax.swing.text.DateFormatter;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Staff;
+import com.lxit.crmsystem.service.StaffService;
+import com.lxit.crmsystem.util.ChineseToEnglish;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.Staffs;
+@Controller
+@RequestMapping("/staffAction")
+public class StaffAction {
+	
+	@Autowired
+	StaffService staffService;
+	
+	@ResponseBody
+	@RequestMapping("/loginPost")
+	public String loginPost(String loginName,String loginPass,HttpSession session){
+		Staffs staff=staffService.queryByIdAndPass(loginName,loginPass);
+		if(staff!=null){
+			session.setAttribute("staff", staff);
+			return "true";
+		}
+		return "false";
+	}
+
+	@RequestMapping("/logout")
+	public String logout(HttpSession session){
+		session.invalidate();
+		return "redirect:../index.html";
+	}
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@RequestMapping("/sendStaffUpdate")
+	public String sendStaffUpdate(Integer staffId,HttpServletRequest rest){
+		Staffs staff = staffService.selectStaffs(staffId);
+		rest.setAttribute("staffs", staff);
+		return "staffupdate";
+	}
+	@ResponseBody
+	@RequestMapping("staffmanager")
+	public Map<String,Object> staffManage(int rows,int page,String staffName){
+		Pager<Staffs> staff = new Pager<Staffs>();
+		staff.setPageIndex(page);
+		staff.setPageSize(rows);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("pageSize", rows);
+		map.put("pageIndex", (page-1)*rows);
+		if(staffName!=null&&staffName!=""){
+			map.put("staffName", "%"+staffName+"%");
+		}
+		staffService.selectStaff(map,staff);
+		Map<String,Object> maps = new HashMap<String,Object>();
+		maps.put("rows", staff.getData());
+		maps.put("total", staff.getSumCount());
+		return maps;
+	}
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@RequestMapping("selectStaff")
+	public String selectStaff(Integer staffId,HttpServletRequest request){
+		Staffs staffsb = staffService.selectStaffs(staffId);
+		request.setAttribute("staffsb", staffsb);
+		return "staffSelect";
+	}
+	
+	@ResponseBody
+	@RequestMapping("staffAdd")
+	public String staffAdd(Staff staff,HttpSession session){
+		SimpleDateFormat tempDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");    
+		String datetime = tempDate.format(new java.util.Date()); 
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		staff.setStaffCoding(Serialnumber.Getnum("ST"));
+		staff.setStaffUpdateSid(userStaff.getStaffId());
+		staff.setStaffLoginName(ChineseToEnglish.getPingYin(staff.getStaffName()));
+		staff.setStaffPass("00000");
+		staff.setStaffCreateTiem(datetime);
+		staff.setStaffLastUpdateTime(datetime);
+		staffService.insertStaff(staff);
+		return "true";
+	}
+	
+	@ResponseBody
+	@RequestMapping("staffUpdate")
+	public String staffUpdate(Staff staff,HttpSession session,String staffSex1,Integer staffState1){
+		staff.setStaffSex(staffSex1);
+		staff.setStaffState(staffState1);
+		SimpleDateFormat tempDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");    
+		String datetime = tempDate.format(new java.util.Date()); 
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		staff.setStaffLastUpdateTime(datetime);
+		staff.setStaffUpdateSid(userStaff.getStaffId());
+		staffService.updateStaff(staff);
+		
+		return "true";
+	}
+	@ResponseBody
+	@RequestMapping("staffDel")
+	public String staffDel(Integer staffId,HttpSession session){
+		staffService.deleteStaff(staffId);
+		return "true";
+	}
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@RequestMapping("sendStaffAccredit")
+	public String sendStaffAccredit(Integer staffId,HttpServletRequest request){
+		Staffs staffsAc = staffService.selectStaffs(staffId);
+		request.setAttribute("staffsAc", staffsAc);
+		return "staffAccredit";
+	}
+	
+	//授权
+	@ResponseBody
+	@RequestMapping("accredit")
+	public String accredit(String strArray,Integer staffId){
+		staffService.deleteTwo(staffId);
+		String[] ar = strArray.split(",");
+		for (int i = 0; i < ar.length; i++) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("rid",ar[i]);
+			map.put("sid",staffId);
+			staffService.insertRoleStaff(map);
+		}
+		return "true";
+	}
+	
+	@RequestMapping("/updatLoginNames")
+	public String updatLoginNames(String staffLoginName,HttpSession session){
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		Map<String, Object> map = new HashMap<>();
+		map.put("staffLoginName", staffLoginName);
+		map.put("staffId",userStaff.getStaffId());
+		staffService.updatLoginName(map);
+		return "personageOne";
+	}
+	
+	@RequestMapping("/updatTephone")
+	public String updatTephone(String stanftephone,HttpSession session){
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		Map<String, Object> map = new HashMap<>();
+		map.put("stanftephone", stanftephone);
+		map.put("staffId",userStaff.getStaffId());
+		staffService.updattephone(map);
+		return "personageOne";
+	}
+	
+	@ResponseBody
+	@RequestMapping("/selectPassWorld")
+	public Staffs selectPassWorld(String password,HttpSession session){
+		Staffs ss = new Staffs();
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		Map<String, Object> map = new HashMap<>();
+		map.put("password", password);
+		map.put("staffId",userStaff.getStaffId());
+		ss = staffService.selectPass(map);
+		if (ss!=null){
+			return ss;
+		}else{
+			return null;
+		}
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/updatPassWorld")
+	public Map<String, Object> updatPassWorld(String staffPass,HttpSession session){
+		Staffs userStaff = (Staffs)session.getAttribute("staff");
+		Map<String, Object> map = new HashMap<>();
+		map.put("staffPass", staffPass);
+		map.put("staffId",userStaff.getStaffId());
+		staffService.updatPass(map);
+		return map;
+	}
+}

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.CommonproblemDao">
+	<resultMap type="Commonproblem" id="CommonproblemMapper">
+		<id property="cpId" column="cp_id" />
+		<result property="cpTitle" column="cp_title" />
+		<result property="cpType" column="cp_type" />
+		<result property="cpCreateSid" column="cp_createSid" />
+		<result property="cpUpdateTime" column="cp_updateTime" />
+		<result property="cpAnswer" column="cp_answer" />
+		<result property="cpRemark" column="cp_remark" />
+		<result property="cpTypeName" column="cpTypeName" />
+		<result property="cpCreateName" column="createName" />
+	</resultMap>
+
+	<select id="query" resultMap="CommonproblemMapper"
+		parameterType="Map">
+		select
+		c.cp_id,c.cp_title,c.cp_type,c.cp_updateTime,c.cp_answer,c.cp_remark,
+		(select s.s_name FROM staff s WHERE s.s_id=c.cp_createSid) createName,
+		(SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.cp_type)
+		cpTypeName
+		from commonproblem c where 1=1	
+		<if test="likeType!=0 and likeType!=''"> 
+			and	c.cp_type=#{likeType}
+		</if>
+		<if test="likeName!=null and likeName!=''">
+			and c.cp_title like #{likeName}
+		</if>
+		LIMIT #{pageIndex},#{pageSize}
+	</select>
+
+	<select id="getCount" resultType="int" parameterType="Map">
+		select count(1) from commonproblem c
+		where 1=1
+		
+		<if test="likeType!=0 and likeType!=''">
+			and c.cp_type=#{likeType}
+		</if>
+		<if test="likeName!=null and likeName!=''">
+			and c.cp_title =#{likeName}
+		</if>
+	</select>
+
+	<insert id="insert" parameterType="Commonproblem">
+		INSERT INTO commonproblem (
+		cp_title,
+		cp_type,
+		cp_createSid,
+		cp_updateTime,
+		cp_answer,
+		cp_remark
+		)
+		VALUES
+		(
+		#{cpTitle},
+		#{cpType},
+		#{cpCreateSid},
+		#{cpUpdateTime},
+		#{cpAnswer},
+		#{cpRemark}
+		)
+	</insert>
+
+	<delete id="delete" parameterType="int">
+		delete from commonproblem
+		where
+		cp_id=#{commId}
+	</delete>
+
+	<update id="update" parameterType="Commonproblem">
+		UPDATE `crm`.`commonproblem`
+		SET
+		`cp_title` = #{cpTitle},
+		`cp_type` = #{cpType},
+		`cp_updateTime` = #{cpUpdateTime},
+		`cp_answer` = #{cpAnswer},
+		`cp_remark` = #{cpRemark}
+		WHERE
+		(`cp_id` = #{cpId});
+	</update>
+	<select id="queryById" parameterType="int" resultMap="CommonproblemMapper">
+		select
+		c.cp_id,c.cp_title,c.cp_type,c.cp_updateTime,c.cp_answer,c.cp_remark,
+		(select s.s_name FROM staff s WHERE s.s_id=c.cp_createSid) createName,
+		(SELECT d.data_value FROM datadictionary d WHERE d.data_id=c.cp_type)
+		cpTypeName
+		from commonproblem c
+		where c.cp_id=#{commId}
+	</select>
+</mapper>

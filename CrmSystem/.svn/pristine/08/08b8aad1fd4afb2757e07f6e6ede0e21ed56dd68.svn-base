@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.ClientsatisfiedDao">
+	<resultMap type="Clientsatisfied" id="ClientsatisfiedMapper">
+		<id property="csId" column="cs_id" />
+		<result property="csCreateTime" column="cs_createTime" />
+		<result property="csUpdateTime" column="cs_updateTime" />
+		<result property="csClientId" column="cs_client_id" />
+		<result property="csMydegree" column="cs_mydegree" />
+		<result property="csSurveyTime" column="cs_surveyTime" />
+		<result property="csFwdegree" column="cs_fwdegree" />
+		<result property="csZtdegree" column="cs_ztdegree" />
+		
+		<result property="csXjbdegree" column="cs_xjbdegree" />
+		<result property="csFeedback" column="cs_feedback" />
+		<result property="csSid" column="cs_s_id" />	
+	</resultMap>
+	
+	<resultMap type="com.lxit.crmsystem.vo.ClientsatisfiedVo" id="ClientsatisfiedVoMapper">
+		<id property="csId" column="cs_id" />
+		<result property="csCreateTime" column="cs_createTime" />
+		<result property="csUpdateTime" column="cs_updateTime" />
+		<result property="clientName" column="clientName" />
+		<result property="csMydegree" column="cs_mydegree" />
+		<result property="csSurveyTime" column="cs_surveyTime" />
+		<result property="csFwdegree" column="cs_fwdegree" />
+		<result property="csZtdegree" column="cs_ztdegree" />
+		<result property="clientType" column="clientType" />
+		
+		<result property="csXjbdegree" column="cs_xjbdegree" />
+		<result property="csFeedback" column="cs_feedback" />
+		<result property="csSid" column="cs_s_id" />	
+	</resultMap>
+	
+	<insert id="insert" parameterType="Clientsatisfied">
+		INSERT INTO clientdevelop (
+			cd_planCoding,
+			cd_name,
+			cd_month,
+			cd_createTime,
+			cd_updateTime,
+			cd_planContent,
+			cd_updateSid
+		)
+		VALUES
+			(
+				#{cdPlanCoding},
+				#{cdName},
+				#{cdMonth},
+				#{cdCreateTime},
+				#{cdUpdateTime},
+				#{cdPlanContent},
+				#{cdUpdateSid}	
+			)
+	</insert>
+	
+	<select id="query" parameterType="int" resultMap="ClientsatisfiedVoMapper">
+		SELECT
+				cs_id,
+				cs_createTime,
+				cs_updateTime,
+				cs_mydegree,
+				cs_surveyTime,
+				cs_fwdegree,
+				cs_ztdegree,
+				cs_xjbdegree,
+				cs_feedback,
+				(
+					SELECT
+						c.client_name
+					FROM
+						client c
+					WHERE
+						c.client_id = cs.cs_client_id
+				) clientName,
+				(
+					SELECT
+						c.client_sex
+					FROM
+						client c
+					WHERE
+						c.client_id = cs.cs_client_id
+				) clientSex,
+			(
+					SELECT
+						data_value
+					FROM
+						datadictionary d
+					WHERE
+						d.data_id = (
+							SELECT
+								c.client_type
+							FROM
+								client c
+							WHERE
+								c.client_id = cs.cs_client_id
+						)
+				) clientType,
+				(
+					SELECT
+						data_value
+					FROM
+						datadictionary d
+					WHERE
+						d.data_id = (
+							SELECT
+								c.client_state
+							FROM
+								client c
+							WHERE
+								c.client_id = cs.cs_client_id
+						)
+				) clientState,
+				(
+					SELECT
+						c.client_coding
+					FROM
+						client c
+					WHERE
+						c.client_id = cs.cs_client_id
+				) clientCoding,
+				(
+					SELECT
+						st.s_name
+					FROM
+						staff st
+					WHERE
+						st.s_id = cs.cs_s_id
+				) staffName,
+(
+					SELECT
+						COUNT(0)
+					FROM
+						indent ni
+					WHERE
+						ni.indent_client_id = cs.cs_id
+				)AS count
+			FROM
+				clientsatisfied cs
+			WHERE  cs.cs_s_id=#{csSid}
+				<if test="likeName!=null and likeName!=''">
+					and cs.clientName like #{likeName}
+				</if>
+				LIMIT #{pageIndex},#{pageSize}	
+	</select>
+	
+	<select id="getCount" parameterType="int" resultType="int">		
+		select
+		count(1) from clientsatisfied cs
+		WHERE cs.cs_s_id=#{cs_s_id}
+	</select>
+	
+	<delete id="delete" parameterType="int">
+		delete from clientsatisfied where cs_id=#{cs_id}
+	</delete>
+	
+	
+	
+	
+	
+	
+	<!-- 查到id然后修改 -->
+	<select id="queryClientsatisfiedById" parameterType="int" resultMap="ClientsatisfiedVoMapper">
+		SELECT
+			cs_id,
+			cs_createTime,
+			cs_updateTime,
+			cs_mydegree,
+			cs_surveyTime,
+			cs_fwdegree,
+			cs_ztdegree,
+			cs_xjbdegree,
+			cs_feedback,
+			(
+				SELECT
+					c.client_name
+				FROM
+					client c
+				WHERE
+					c.client_id = cs.cs_client_id
+			) clientName,
+			(
+				SELECT
+					c.client_sex
+				FROM
+					client c
+				WHERE
+					c.client_id = cs.cs_client_id
+			) clientSex,
+		(
+				SELECT
+					data_value
+				FROM
+					datadictionary d
+				WHERE
+					d.data_id = (
+						SELECT
+							c.client_type
+						FROM
+							client c
+						WHERE
+							c.client_id = cs.cs_client_id
+					)
+			) clientType,
+			(
+				SELECT
+					data_value
+				FROM
+					datadictionary d
+				WHERE
+					d.data_id = (
+						SELECT
+							c.client_state
+						FROM
+							client c
+						WHERE
+							c.client_id = cs.cs_client_id
+					)
+			) clientState,
+			(
+				SELECT
+					c.client_coding
+				FROM
+					client c
+				WHERE
+					c.client_id = cs.cs_client_id
+			) clientCoding,
+			(
+				SELECT
+					st.s_name
+				FROM
+					staff st
+				WHERE
+					st.s_id = cs.cs_s_id
+			) staffName
+		FROM
+			clientsatisfied cs
+		WHERE
+			cs.cs_id=#{csId}
+	</select>
+	
+	<!-- <update id="update" parameterType="ClientDevelop">
+		UPDATE clientdevelop set 
+			cd_planCoding=#{cdPlanCoding},
+			cd_name=#{cdName},
+			cd_month=#{cdMonth},
+			cd_createTime=#{cdCreateTime},
+			cd_updateTime=#{cdUpdateTime},
+			cd_planContent=#{cdPlanContent},
+			cd_updateSid=#{cdUpdateSid}	
+		WHERE cd_id=3			
+	</update> -->
+	
+	
+		
+</mapper>

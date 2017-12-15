@@ -1,0 +1,272 @@
+$(function(){
+	$("#develop").datagrid({
+		url:"../clientManagementAction/queryDevelopPostById", 
+		height:500,
+		fitColumns:true,
+		striped:true,
+		rownumbers:true,
+		border:false,
+		pagination:true,
+		
+		//分页
+		pageSize:10,
+		pageList:[10,20,30,40],
+		pageNumber:1,
+		toolbar:"manager_tool",
+		sortName:"date",
+		sortOrder:"desc",
+		
+		columns:[[
+		   {
+				field:"cdId",
+				title:"自动编号",
+				width:100,
+				checkbox:true,	 
+			},
+			{
+				field:"cdName",
+				title:"客户姓名",
+				width:100,
+			},
+			{
+				field:"cdMonth",
+				title:"月份",
+				width:100,
+			},
+			{
+				field:"cdCreateTime",
+				title:"创建时间",
+				width:100,					 
+			},
+			{
+				field:"cdUpdateTime",
+				title:"最后操作时间",
+				width:100,					 
+			},
+			{
+				field:"cdUpdateSid",
+				title:"操作人",
+				width:100,					 
+			},
+		]],
+	});
+	
+	
+	//添加框
+	$("#develop_add").dialog({
+		width:600,
+		height:430,
+		title:"添加计划",
+		modal:true,
+		closed:true,
+		buttons:[{
+			text:"保存",
+			iconCls:"icon-add",
+			handler:function(){
+				if($("#develop_add").form("validate")){
+					$.ajax({
+						url:"../clientManagementAction/addDevelopPost",
+						type:"post",
+						data:{
+							/*"cdPlanCoding":$("input[name='cdPlanCoding']").val(),*/
+							"cdName":$("input[name='cdName']").val(),
+							"cdMonth":$("input[name='cdMonth']").val(),
+							"cdPlanContent":$("textarea[name='cdPlanContent']").val(),					
+						},
+						beforeSend:function(){
+							alert($("input[name='cdName']").val())
+							$.messager.progress({
+								text:"正在更新中。。。",
+							});
+						},
+						success : function(result) {
+							$.messager.progress("close");
+							$.messager.show({
+								title:"提示",
+								msg:"添加计划成功",
+							});
+							$("#develop_add").dialog("close").form("reset");
+							$("#develop").datagrid("reload");  
+						}
+					});
+				}else{
+					alert("请填写完整信息")
+				}
+			},
+		},{
+			text:"返回",
+			iconCls:"icon-redo",
+			handler:function(){
+				$("#develop_add").dialog("close").form("reset");
+			},
+		}],
+	});	
+	
+	
+	
+	//修改提交
+	 $("#develop_edit").dialog({
+		width:600,
+		height:450,
+		title:"修改计划",
+		modal:true,
+		closed:true,
+		buttons:[{
+			text:"提交",
+			iconCls:"icon-edit",
+			handler:function(){
+				if($("#develop_edit").form("validate")){
+					var rows = $('#develop').datagrid('getSelections');
+					$.ajax({						
+						url:"../clientManagementAction/updateSubmitDevelopPost",
+						type:"post",
+						data:{
+							cdId:$("input[name='cdId_edit']").val(),
+							cdPlanCoding:$("input[name='cdPlanCoding_edit']").val(),
+							cdName:$("input[name='cdName_edit']").val(),
+							cdMonth:$("input[name='cdMonth_edit']").val(),
+							cdPlanContent:$("textarea[name='cdPlanContent_edit']").val(),
+						},
+						success : function(result) {					
+					    	console.log(result)
+					    	if(result == "clientDevelop"){
+					    		$.messager.confirm('提示操作','修改成功','warning');
+					    		$('#develop_edit').dialog('close');
+								$('#develop').datagrid('reload');  //到首页刷新
+					    	}else{
+								$.messager.confirm('提示操作','修改失败','warning');
+							}
+						}
+					});
+				}else{
+					alert("请填写完整信息")
+				} 
+			},
+		},{
+			text:"取消",
+			iconCls:"icon-redo",
+			handler:function(){
+				$("#develop_edit").dialog("close").form("reset");
+			},
+		}], 
+	});
+	
+	
+	
+	manager_tool = {				
+			//新增
+			add:function(){
+				$("#develop_add").dialog("open")	;
+				$("input[name='cdName']").focus();
+			},
+			
+			
+			//模糊查询
+			search:function(){
+				$('#develop').datagrid('load',{
+					likeMonth: $("input[name='likeMonth']").val(),
+				});
+			},
+			
+			remove:function(){
+				var rows = $("#develop").datagrid("getSelections");
+				if(rows.length == 1){
+					$.messager.confirm("确定操作","您确定要删除所选的记录吗？",function(flag){
+						if(flag){
+							console.log(rows);
+							alert(rows[0].cdId+"--///////////")
+							
+							$.ajax({
+								type:"post",
+								url:"../clientManagementAction/deleteDevelopPost",
+								data:{
+									cdId:rows[0].cdId
+								},
+								  
+								success:function(result){
+									alert(result+"==========")
+									 if(result == "true"){		
+										alert("删除成功")
+										$("#develop").datagrid("reload"); //自动刷新	  
+									} else{
+										$.messager.confrim("提示操作","删除失败","warning");
+									}
+								},
+							});
+						}
+					});
+				}else{
+					$.messager.alert("提示","请选择要删除的记录","info");
+				}
+			}, 
+			
+			
+			
+			//修改 获取值
+			edit:function(){
+				var rows = $("#develop").datagrid("getSelections");
+				if(rows.length > 1){
+					$.messager.alert("警告操作！","编辑记录只能选定一条记录！","warning");
+				}else if(rows.length == 1){
+					$.ajax({
+						url:"../clientManagementAction/updateDevelopPost",
+						type:"post",
+						data:{
+							cdId:rows[0].cdId  
+						},
+					
+						success:function(result){
+							console.log(result);
+							if(result){
+								$('#develop_edit').form('load',{
+									"cdId_edit":result.cdId,
+									"cdPlanCoding_edit":result.cdPlanCoding,
+									"cdName_edit":result.cdName,
+									"cdMonth_edit":result.cdMonth,
+									"cdPlanContent_edit":result.cdPlanContent,
+									
+								}).dialog('open')
+							}
+						}
+					});	
+				}else if(rows.length == 0){
+					$.messager.alert("警告操作！","编辑记录至少选定一条记录！","warning");
+				}
+			},
+			
+			
+			look:function(){
+				var rows = $("#develop").datagrid("getSelections");
+				if(rows.length > 1){
+					$.messager.alert("警告操作！","编辑记录只能选定一条记录！","warning");
+				}else if(rows.length == 1){
+					$.ajax({
+						url:"../clientManagementAction/updateDevelopPost",
+						type:"post",
+						data:{
+							cdId:rows[0].cdId  
+						},
+					
+						success:function(result){
+							console.log(result);
+							if(result){
+								$('#develop_edit').form('load',{
+									"cdPlanCoding_edit":result.cdPlanCoding,
+									"cdName_edit":result.cdName,
+									"cdMonth_edit":result.cdMonth,
+									"cdPlanContent_edit":result.cdPlanContent,
+									
+								}).dialog('open')
+							}
+						}
+					});	
+				}else if(rows.length == 0){
+					$.messager.alert("警告操作！","编辑记录至少选定一条记录！","warning");
+				}
+			},
+			
+			
+			
+		};
+	
+})

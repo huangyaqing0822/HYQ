@@ -1,0 +1,95 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.DataDictionary;
+import com.lxit.crmsystem.service.DataDictionaryService;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/DataDictionaryAction")
+public class DataDictionaryAction {
+	@Autowired
+	DataDictionaryService dataDictionaryService;
+	
+	@ResponseBody
+	@RequestMapping("/queryData")
+	public List<DataDictionary> queryData(String dataCode){
+		return dataDictionaryService.query(dataCode);
+	}
+	
+	@ResponseBody
+	@RequestMapping("/selectDataictionary")
+	public Map<String, Object> selectDataictionary(Integer rows ,Integer page,String dataName){
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("pageSize", rows);
+		map.put("pageIndex", (page-1)*rows);
+		if(dataName!=null&&(!dataName.equals(""))){
+			map.put("dataName", "%"+dataName+"%");
+		}
+		List<DataDictionary> list = dataDictionaryService.selectData(map);
+		Map<String,Object> maps = new HashMap<String,Object>();
+		maps.put("rows", list);
+		maps.put("total", dataDictionaryService.selectCountdata(map));
+		return maps;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/insertDataictionary")
+	public String insertDataictionary(DataDictionary dataDictionary,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		Staffs staff = (Staffs) session.getAttribute("staff");
+		int countId = staff.getStaffId();
+		dataDictionary.setDataSid(countId);
+		dataDictionary.setDataCreateTime(time);
+		dataDictionary.setDataUpdateTime(time);
+		if (dataDictionaryService.insertDataDictionary(dataDictionary)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	
+	@ResponseBody
+	@RequestMapping("/deleteDataictionary")
+	public String deleteDataictionary(int dataId){
+		if (dataDictionaryService.deleteDataDictionary(dataId)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	@ResponseBody
+	@RequestMapping("/selectDepartment")
+	public List<DataDictionary> selectDataIds(int dataId,Map<String, Object>map){
+		DataDictionary dataDictionary = dataDictionaryService.dataDictionId(dataId);
+		List<DataDictionary> list = new ArrayList<>();
+		list.add(dataDictionary);
+		return list;
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/updatDataictonarys")
+	public String updatDataictonarys(DataDictionary dataDictionary,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		dataDictionary.setDataUpdateTime(time);
+		if (dataDictionaryService.updatDataDictionary(dataDictionary)){
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+}

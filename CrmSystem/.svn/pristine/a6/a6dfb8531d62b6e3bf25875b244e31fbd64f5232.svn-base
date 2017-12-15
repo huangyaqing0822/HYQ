@@ -1,0 +1,153 @@
+package com.lxit.crmsystem.controller;
+
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Role;
+import com.lxit.crmsystem.service.RoleService;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/roleAction")
+public class RoleAction {
+	@Autowired
+	RoleService roleService;
+	
+	@ResponseBody
+	@RequestMapping("/getListRole")
+	public Map<String,Object> getListRole(Integer rows ,Integer page,String roleName){
+		System.out.println("rows"+rows+"page"+page+"roleName"+roleName);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("pageSize", rows);
+		map.put("pageIndex", (page-1)*rows);
+		if(roleName!=null&&(!roleName.equals(""))){
+			map.put("rname", "%"+roleName+"%");
+		}
+		List<Role> list = roleService.roleSelect(map);
+		Map<String,Object> maps = new HashMap<String,Object>();
+		maps.put("rows", list);
+		maps.put("total", roleService.roleSelectCount2(map));
+		return maps;
+	}
+	
+	/*@RequestMapping("/sendRoleAccredit")
+	public String sendRoleAccredit(Integer roleId,HttpServletRequest request){
+		System.out.println("roleId"+roleId);
+		Role role = roleService.roleSelectOne(roleId);
+		
+		request.setAttribute("roleQyh", role);
+		
+		return "roleAccredit";
+	}*/
+	
+	
+	@ResponseBody
+	@RequestMapping("/getListRole1")
+	public Map<String,Object> getListRole1(Integer departmentId,int rows ,int page){
+		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@"+departmentId);
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("pageSize", rows);
+		map.put("pageIndex", (page-1)*rows);
+		map.put("did", departmentId);
+		List<Role> list = roleService.roleSelect1(map);
+		Map<String,Object> maps = new HashMap<String,Object>();
+		maps.put("rows", list);
+		maps.put("total", roleService.roleSelectCount(map));
+		return maps;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/delRoles")
+	public String delRoles(@RequestParam("roleId")Integer roleId){
+		System.out.println("ROLEiD"+roleId);
+		if (roleService.delRole(roleId)){
+			return "true";
+		}else{
+			return "false";
+		}
+		
+	}
+	
+	@ResponseBody
+	@RequestMapping("/insertRoles")
+	public String insertRoles(Role role,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		String marketCoding = Serialnumber.Getnum("SYS");
+		Staffs staff =   (Staffs) session.getAttribute("staff");
+		
+		int countId = staff.getStaffId();
+		role.setRoleUpdateSid(countId);
+		role.setRoleCoding(marketCoding);
+		role.setRoleUdatTime(time);
+		if (roleService.insertRole(role)){
+			System.out.println("增加sssssssssssss"+role);
+			return "true";
+		}else{
+			return "false";
+		}
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/listRoleOne")
+	public List<Role> listRoleOne(int roleId,Map<String, Object>map){
+		Role role =  roleService.roleSelectOne(roleId);
+		System.out.println("----------"+roleId);
+		List<Role> list = new ArrayList<>();
+		list.add(role);
+		return list;
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/selectAll")
+	public List<Role> selectAll(){
+		List<Role> list =  roleService.selectAll();
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/updateRoles")
+	public String updateRoles(Role role,HttpSession session){
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		role.setRoleUdatTime(time);
+		System.out.println("sssssssssss"+role);
+		if (roleService.updateRole(role)){
+			return "true";
+		}else{
+			return "false";
+		}
+		
+	}
+	
+	@ResponseBody
+	@RequestMapping("/insertRoleNav")
+	public String insertRoleNav(String strRole,Integer roleId){
+		System.out.println(strRole);
+		System.out.println(roleId);
+		roleService.deleteRoleNav(roleId);
+		String[] str = strRole.split(",");
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("rid", roleId);
+		map.put("strArr", str);
+		roleService.insertRoleNav(map);
+		return "true";
+	}
+	
+}

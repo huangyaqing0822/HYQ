@@ -1,0 +1,505 @@
+package com.lxit.crmsystem.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.entity.Client;
+import com.lxit.crmsystem.entity.ClientDevelop;
+import com.lxit.crmsystem.entity.ClientLoving;
+import com.lxit.crmsystem.entity.Clientsatisfied;
+import com.lxit.crmsystem.service.ClientDevelopService;
+import com.lxit.crmsystem.service.ClientLovingService;
+import com.lxit.crmsystem.service.ClientService;
+import com.lxit.crmsystem.service.ClientsatisfiedService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.util.Serialnumber;
+import com.lxit.crmsystem.vo.ClientDevelopVo;
+import com.lxit.crmsystem.vo.ClientLovingVo;
+import com.lxit.crmsystem.vo.Clients;
+import com.lxit.crmsystem.vo.ClientsatisfiedVo;
+import com.lxit.crmsystem.vo.ServeVo;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+@RequestMapping("/clientManagementAction")
+public class ClientManagementAction {
+	@Autowired
+	ClientService clientService;
+	@Autowired
+	ClientDevelopService clientDevelopService;
+	@Autowired
+	ClientsatisfiedService clientsatisfiedService;
+	@Autowired
+	ClientLovingService clientLovingService;
+	
+	@ResponseBody
+	@RequestMapping("/addPost")
+	public String add(Client client,HttpSession session){
+		System.out.println("-----客户资源增加");
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		client.setClientAssignstate(26);
+		client.setClientCreateTime(sdf);
+		client.setClientUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		client.setClientSid(staff.getStaffId()); 
+		client.setClientUpdateSid(staff.getStaffId());
+		client.setClientLv(1); // 添加时默认的 客户价值等级全部是 1
+		System.out.println(client+"=======*****");
+		clientService.insert(client);
+		return "clientResource";
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/queryPostById")
+	public Map<String, Object> queryById(HttpSession session,Integer page,Integer rows,String likeName,String likeState){
+		System.out.println("-----客户资源分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		System.out.println(page+"--------"+rows+"---------"+staff.getStaffId());
+		Pager<Clients> ListClients=clientService.query(page, rows, staff.getStaffId(),likeName,likeState);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryById........."+ListClients.getData());
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		System.out.println("++++++"+map);
+		System.out.println("MAPMAPMAP");
+		return map;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/queryClient")
+	public List<Clients> queryClient(HttpSession session){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		List<Clients> list=clientService.queryClient(staff.getStaffId());
+		return list;
+	}
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updatePost")
+	public Clients update(int clientId,HttpSession session){
+		System.out.println("idid------"+clientId);
+		Clients clients=clientService.queryClientById(clientId);
+		System.out.println("ccclients===="+clients);
+		return clients;	
+	}
+		
+	@ResponseBody
+	@RequestMapping("/updateSubmitPost")//////////////////////
+	public String updateSubmit(Client client,HttpSession session){
+		System.out.println("-----客户资源修改");
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		client.setClientAssignstate(26);
+		client.setClientCreateTime(sdf);
+		client.setClientUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		client.setClientSid(staff.getStaffId()); 
+		client.setClientUpdateSid(staff.getStaffId());
+		client.setClientLv(1); // 添加时默认的 客户价值等级全部是 1
+		System.out.println(client+"=======*****");
+		clientService.update(client);
+		return "clientResource";
+	}
+	
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/deletePost")
+	public String delete(int clientId){
+		System.out.println("-----客户资源删除");
+		System.out.println("id------"+clientId);
+		int count=clientService.delete(clientId);
+		if(count>0){
+			System.out.println("删除成功！");
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+
+	
+
+////////////////////////////////////////////客户发展计划
+	
+	@ResponseBody
+	@RequestMapping("/addDevelopPost")
+	public String addDevelop(ClientDevelop clientDevelop,HttpSession session){
+		System.out.println("-----客户发展计划增加");
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		String planCoding = Serialnumber.Getnum("LY_HYQ"); //编码随机数的前缀
+		clientDevelop.setCdPlanCoding(planCoding);
+		clientDevelop.setCdCreateTime(sdf);
+		clientDevelop.setCdUpdateTime(sdf);
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		clientDevelop.setCdUpdateSid(staff.getStaffId());
+		System.out.println(clientDevelop+"=======*****");
+		clientDevelopService.insert(clientDevelop);
+		return "clientDevelop";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/queryDevelopPostById")
+	public Map<String, Object> queryDevelopById(HttpSession session,int page,int rows,String likeMonth){		
+		System.out.println("-----客户发展计划分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		System.out.println(page+"--------"+rows+"---------"+staff.getStaffId());
+		Pager<ClientDevelopVo> ClientDevelopVoList=clientDevelopService.query(page, rows, staff.getStaffId(),likeMonth);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryDevelopById........."+ClientDevelopVoList.getData());
+		map.put("total", ClientDevelopVoList.getSumCount());
+		map.put("rows", ClientDevelopVoList.getData());
+		System.out.println("-------"+map);
+		System.out.println("MAPMAPMAP");
+		return map;
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteDevelopPost")
+	public String deleteDevelop(int cdId){
+		System.out.println("-----客户发展计划删除");
+		System.out.println("id------"+cdId);
+		int count=clientDevelopService.delete(cdId);
+		if(count>0){
+			System.out.println("删除成功！");
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateDevelopPost")
+	public ClientDevelopVo updateDevelop(int cdId,HttpSession session){
+		System.out.println("idid------"+cdId);
+		ClientDevelopVo clientDevelopVo=clientDevelopService.queryClientDevelopById(cdId);
+		System.out.println("clientDevelopVo000000===="+clientDevelopVo);
+		return clientDevelopVo;	
+	}
+		
+	@ResponseBody
+	@RequestMapping("/updateSubmitDevelopPost")
+	public String updateSubmitDevelop(ClientDevelop clientDevelop,HttpSession session){
+		System.out.println("-----客户发展计划修改");
+		String sdf=new SimpleDateFormat("yyyy-MM-dd").format(new Date()); 
+		clientDevelop.setCdCreateTime(sdf);
+		clientDevelop.setCdUpdateTime(sdf);
+		System.out.println("000000000---");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		clientDevelop.setCdUpdateSid(staff.getStaffId());
+		System.out.println("=**********==="+clientDevelop);
+		clientDevelopService.update(clientDevelop);
+		System.out.println("8888888888");
+		return "clientDevelop";
+	}
+	
+	
+	
+	
+	
+	/////////////////////////////////////////////客户价值管理
+	
+	@ResponseBody
+	@RequestMapping("/queryValueById")
+	public Map<String, Object> queryValueById(HttpSession session,int page,int rows,String likeName,String likeType){
+		System.out.println("-----客户价值信息分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<Clients> ListClients=clientService.queryValue(page, rows, staff.getStaffId(), likeName, likeType);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryById........."+ListClients.getData());
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		System.out.println("++++++"+map);
+		return map;
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateValuePost")
+	public Clients updateValue(int clientId,HttpSession session){
+		System.out.println("idid------"+clientId);
+		Clients clients=clientService.queryValueById(clientId);
+		System.out.println("ccclients===="+clients);
+		return clients;	
+	}
+	
+	
+	
+	
+	
+	/////////////////////////////////////////////客户满意度管理
+	
+	@ResponseBody
+	@RequestMapping("/querySatisfiedById")
+	public Map<String, Object> querySatisfiedById(HttpSession session,int page,int rows,String likeName){
+		System.out.println("-----客户满意度分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		System.out.println(page+"--------"+rows+"---------"+staff.getStaffId());
+		Pager<ClientsatisfiedVo> ListClientsatisfiedVo=clientsatisfiedService.query(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryById........."+ListClientsatisfiedVo.getData());
+		map.put("total", ListClientsatisfiedVo.getSumCount());
+		map.put("rows", ListClientsatisfiedVo.getData());
+		System.out.println("++++++"+map);
+		System.out.println("MAPMAPMAP");
+		return map;
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteSatisfiedPost")
+	public String deleteSatisfied(int csId){
+		System.out.println("-----客户满意度删除");
+		System.out.println("id------"+csId);
+		int count=clientsatisfiedService.delete(csId);
+		if(count>0){
+			System.out.println("删除成功！");
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询 ////////////////
+	@ResponseBody
+	@RequestMapping("/updateSatisfiedPost")
+	public ClientsatisfiedVo updateSatisfied(int csId,HttpSession session){
+		System.out.println("idid------"+csId);
+		ClientsatisfiedVo clientsatisfiedVo=clientsatisfiedService.queryClientsatisfiedById(csId);
+		System.out.println("clientsatisfiedVo000000===="+clientsatisfiedVo);
+		return clientsatisfiedVo;	
+	}
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitSatisfiedPost")/////////////////
+	public String updateSubmitSatisfied(Clientsatisfied clientsatisfied,HttpSession session){
+		System.out.println("-----客户满意度修改");
+		clientsatisfiedService.update(clientsatisfied);
+		System.out.println("8888888888");
+		return "clientsatisfied";
+	}
+	
+	
+	
+	@ResponseBody
+	@RequestMapping("/addSatisfiedPost")  ///////////////
+	public String addSatisfied(Clientsatisfied clientsatisfied,HttpSession session){
+		System.out.println("-----客户满意度增加");
+		clientsatisfiedService.insert(clientsatisfied);
+		return "clientDevelop";
+	}
+	
+	
+////////////////////	
+	@ResponseBody
+	@RequestMapping("/queryClients")
+	public List<Clients> queryClients(HttpSession session){
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		return clientService.queryClient(staff.getStaffId());
+	}
+///////////////////
+	
+	
+	
+////////////////////////////////客户信誉管理
+	
+	@ResponseBody
+	@RequestMapping("/queryReputationById")
+	public Map<String, Object> queryReputationById(HttpSession session,int page,int rows,String likeName){
+		System.out.println("-----客户信誉信息分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<Clients> ListClients=clientService.queryReputation(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryById........."+ListClients.getData());
+		map.put("total", ListClients.getSumCount());
+		map.put("rows", ListClients.getData());
+		System.out.println("++++++"+map);
+		return map;
+	}
+	
+	
+	//查看时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateReputationPost")
+	public Clients updateReputation(int clientId,HttpSession session){
+		System.out.println("idid------"+clientId);
+		Clients clients=clientService.queryReputationById(clientId);
+		System.out.println("ccclients===="+clients);
+		return clients;	
+	}
+	
+	
+	////////////////////////////客户关怀
+	
+	@ResponseBody
+	@RequestMapping("/queryLovingById")
+	public Map<String, Object> queryLovingById(HttpSession session,int page,int rows,String likeName){
+		System.out.println("-----客户关怀分页查询");
+		Staffs staff=(Staffs) session.getAttribute("staff");
+		Pager<ClientLovingVo> ListClientLovingVo=clientLovingService.query(page, rows, staff.getStaffId(),likeName);
+		Map<String, Object> map=new HashMap<>();
+		System.out.println("queryById........."+ListClientLovingVo.getData());
+		map.put("total", ListClientLovingVo.getSumCount());
+		map.put("rows", ListClientLovingVo.getData());
+		System.out.println("++++++"+map);
+		return map;
+	}
+	
+	
+	
+	//查询时需要的id查询
+		@ResponseBody
+		@RequestMapping("/updateLovingPost")
+		public String updateLoving(int clientId,HttpSession session){
+			System.out.println("idid------"+clientId);
+			ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clientId);
+			System.out.println("clientloving===---------="+clientLovingVo);
+			session.setAttribute("clientLovingVo", clientLovingVo);
+			
+			return "true";	
+		}
+		
+		@ResponseBody
+		@RequestMapping("/getClientVoing")
+		public ClientLovingVo getClientVoing(HttpSession session){
+			ClientLovingVo  clientLovingVo  = (ClientLovingVo) session.getAttribute("clientLovingVo");
+			System.out.println("clientLovingVo:::"+clientLovingVo);
+			return clientLovingVo;
+			
+		}
+	
+	
+	///****
+	
+	//关怀提醒
+		
+	@ResponseBody
+	@RequestMapping("/addLovingPost")
+	public String addLoving(ClientLoving clientLoving,HttpSession session){
+		System.out.println("-----客户提醒增加");
+		
+		clientLovingService.insert(clientLoving);
+		System.out.println("11");
+		return "clientResource";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteLovingPost")
+	public String deleteLoving(int clId){
+		System.out.println("-----客户提醒删除");
+		System.out.println("id------"+clId);
+		int count=clientLovingService.delete(clId);
+		if(count>0){
+			System.out.println("删除成功！");
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateLovingPost2")
+	public ClientLovingVo updateLoving2(int clientId,HttpSession session){
+		System.out.println("idid------"+clientId);
+		ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clientId);
+		System.out.println("clientloving===---------="+clientLovingVo);
+		session.setAttribute("clientLovingVo", clientLovingVo);
+		
+		return clientLovingVo;	
+	}
+			
+
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitLovingPost") ////////
+	public String updateSubmitLoving(ClientLoving clientLoving,HttpSession session){
+		System.out.println("-----客户关怀修改");
+		
+		clientLovingService.update(clientLoving);
+		System.out.println("8888888888");
+		return "true";
+	}
+	
+	
+	///详情
+	@ResponseBody
+	@RequestMapping("/addDetailsPost")
+	public String addDetails(ClientLoving clientLoving,HttpSession session){
+		System.out.println("-----客户提醒增加");
+		
+		clientLovingService.insert(clientLoving);
+		System.out.println("11");
+		return "clientResource";
+	}
+	
+	
+	@ResponseBody
+	@RequestMapping("/deleteDetailsPost")
+	public String deleteDetails(int clId){
+		System.out.println("-----客户提醒删除");
+		System.out.println("id------"+clId);
+		int count=clientLovingService.delete(clId);
+		if(count>0){
+			System.out.println("删除成功！");
+			return "true";
+		}
+		return "false";
+	}
+	
+	
+	//修改时需要的id查询
+	@ResponseBody
+	@RequestMapping("/updateDetailsPost2")
+	public ClientLovingVo updateDetails2(int clId,HttpSession session){
+		System.out.println("idid------"+clId);
+		ClientLovingVo clientLovingVo=clientLovingService.queryClientLovingById(clId);
+		System.out.println("clientloving===---------="+clientLovingVo);
+		session.setAttribute("clientLovingVo", clientLovingVo);
+		
+		return clientLovingVo;	
+	}
+			
+
+	
+	@ResponseBody
+	@RequestMapping("/updateSubmitDetailsPost") ////////
+	public String updateSubmitDetails(ClientLoving clientLoving,HttpSession session){
+		System.out.println("-----客户关怀修改");
+		
+		clientLovingService.update(clientLoving);
+		System.out.println("8888888888");
+		return "clientDevelop";
+	}
+	@ResponseBody
+	@RequestMapping("/updateState")
+	public String updateState(Client client){
+		client.setClientState(25);
+		int count=clientService.updateState(client);
+		if(count>0){
+			return "true";
+		}
+		return "flse";
+	}
+	
+	
+}

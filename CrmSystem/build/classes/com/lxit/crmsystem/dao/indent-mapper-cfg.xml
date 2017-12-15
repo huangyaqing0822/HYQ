@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.IndentDao">
+	<sql id="BaseSqlCount">
+		count(0)
+	</sql>
+	<sql id="BaseSqlContext">
+			<![CDATA[
+				DISTINCT
+				c.client_id AS id,
+				c.client_name AS NAME,
+				c.client_sex AS sex,
+				c.client_phone as phone,
+				(
+					SELECT
+						d.data_value
+					FROM
+						datadictionary d
+					WHERE
+						d.data_id = c.client_type
+				) AS type,
+				(
+					SELECT
+						d.data_value
+					FROM
+						datadictionary d
+					WHERE
+						d.data_id = c.client_state
+				) AS state,
+				s.s_name AS withs,
+				(
+					SELECT
+						COUNT(0)
+					FROM
+						indent ni
+					WHERE
+						ni.indent_client_id = c.client_id
+				) AS consumption,
+				(
+					SELECT
+						SUM(ni.indent_countprice)
+					FROM
+						indent ni
+					WHERE
+						ni.indent_client_id = c.client_id
+				) AS sum
+			]]>
+	</sql>
+	<sql id="BaseSql">
+		SELECT
+		<include refid="BaseSqlContext" />
+		FROM
+		staff s,
+		client c
+		LEFT JOIN indent i ON i.indent_client_id =
+		c.client_id
+	</sql>
+	<sql id="BaseDocut">
+		<![CDATA[
+			SELECT
+				cpp_id AS cppId,
+				cpp_coding AS cppCoding,
+				cpp_price AS cppPrice,
+				cpp_count AS cppCount,
+				cpp_name AS name
+			FROM
+				companyproduct
+		]]>
+	</sql>
+	<sql id="spitePage">
+		<![CDATA[
+			LIMIT #{page},#{rows} 
+		]]>
+	</sql>
+	<sql id="chooseCheck">
+		<if test="counts!=null">
+			SELECT
+			<include refid="BaseSqlCount" />
+			FROM (
+		</if>
+		<include refid="BaseSql" />
+			<![CDATA[
+				where s.s_id = c.client_allot AND c.client_state=(
+				 SELECT cd.data_id FROM datadictionary cd WHERE cd.data_value="正常")
+			]]>
+		<if test="name!=null">
+			<bind name="like1" value="'%'+name+'%'" />
+			<![CDATA[
+				AND c.client_name LIKE #{like1}
+			]]>
+		</if>
+		<if test="phone!=null">
+			<bind name="like2" value="'%'+phone+'%'" />
+			<![CDATA[
+				AND c.client_phone LIKE #{like2}
+			]]>
+		</if>
+		<if test="state!=null">
+			<![CDATA[
+				AND c.client_allot=#{sid}
+			]]>
+		</if>
+	</sql>
+	<select id="selectIndent" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.vo.ViewIndent">
+		<include refid="chooseCheck" />
+		<include refid="spitePage" />
+	</select>
+	<select id="selectIndentCount" parameterType="java.util.Map"
+		resultType="int">
+		<include refid="chooseCheck" />
+		<if test="counts!=null">
+			<![CDATA[
+				) allc
+			]]>
+		</if>
+	</select>
+	<!-- .................................................................. -->
+	<select id="selectLv" parameterType="int" resultType="java.lang.String">
+		<![CDATA[
+			SELECT
+				r.r_name
+			FROM
+				staff s,
+				staff_role sr,
+				role r
+			WHERE
+			sr.s_id = s.s_id
+			AND r.r_id = sr.r_id
+			AND s.s_id = #{id}
+		]]>
+	</select>
+	<select id="selectProduct" parameterType="java.util.Map"
+		resultType="com.lxit.crmsystem.entity.CompanyProduct">
+		<include refid="BaseDocut" />
+		<include refid="spitePage" />
+	</select>
+	<select id="getCount" resultType="int" parameterType="java.util.Map">
+		<![CDATA[SELECT COUNT(0) FROM ${table}]]>
+	</select>
+	<insert id="insertIndent" keyProperty="indentId"
+		useGeneratedKeys="true" parameterType="com.lxit.crmsystem.entity.Indent">
+		<![CDATA[
+			INSERT INTO INDENT VALUES(NULL,#{indentSid},#{indentClientId},#{indentType},#{indentYunfei},#{indentCountprice},#{indentInvoice},#{indentMod},NOW(),49)
+		]]>
+	</insert>
+	<insert id="insertIndentto" parameterType="java.util.Map">
+		<![CDATA[
+			INSERT INTO INDENT_CPP VALUES 
+		]]>
+		<foreach item="is" collection="list" separator=",">
+			<![CDATA[
+				(#{is.inid},#{is.cid},#{is.cpcount})
+			]]>
+		</foreach>
+	</insert>
+	<sql id="identQuerys">
+		<![CDATA[
+			i.indent_id AS id,
+			'普通类型' AS "types",
+			ct.cpp_name AS namec,
+			c.client_name AS clientName,
+			(ct.cpp_price * ic.cpcount) AS price,
+			i.indent_createTime AS datetime,
+			dat.data_value AS type
+		]]>
+	</sql>
+	<sql id="fiall">
+		<if test="counts!=null">
+			SELECT
+			<include refid="BaseSqlCount" />
+			FROM (
+		</if>
+		SELECT
+		<include refid="identQuerys" />
+		<![CDATA[
+			FROM
+				indent i,
+				indent_cpp ic,
+				client c,
+				companyproduct ct,
+				datadictionary dat
+			WHERE
+				i.indent_client_id = c.client_id
+				AND ic.indent_id = i.indent_id
+				AND ct.cpp_id = ic.cpp_id
+				AND dat.data_id = i.indent_zhuantai
+		]]>
+		<if test="spname!=null and spname!=''">
+			<bind name="spnamelike" value="'%'+spname+'%'" />
+				<![CDATA[
+					AND ct.cpp_name LIKE #{spnamelike}
+				]]>
+		</if>
+		<if test="spnumber!=null and spnumber!=''">
+			<bind name="spnumberlike" value="'%'+spnumber+'%'" />
+				<![CDATA[
+					AND ic.cpp_id LIKE #{spnumberlike}
+				]]>
+		</if>
+		<if test="ddnumber!=null and ddnumber!=''">
+			<bind name="ddnumberlike" value="'%'+ddnumber+'%'" />
+				<![CDATA[
+					AND i.indent_id LIKE #{ddnumberlike}
+				]]>
+		</if>
+		<if test="shrc!=null and shrc!=''">
+			<bind name="shrelike" value="'%'+shrc+'%'" />
+				<![CDATA[
+					AND ct.cpp_name LIKE #{shrelike}
+				]]>
+		</if>
+		<if test="before!=null and before!=''">
+				<![CDATA[
+					AND i.indent_createTime <=#{before}
+				]]>
+		</if>
+		<if test="before3!=null and before3!=''">
+				<![CDATA[
+					AND i.indent_createTime >=#{before3}
+				]]>
+		</if>
+		<if test="nowN!=null and nowN!=''">
+				<![CDATA[
+					AND i.indent_createTime >=#{nowN}
+				]]>
+		</if>
+		<![CDATA[
+			GROUP BY
+				i.indent_id
+		]]>
+		<if test="type!=null and type!=''">
+			HAVING
+			type=#{type}
+		</if>
+		<if test="counts!=null">
+			<![CDATA[
+				) cs
+			]]>
+		</if>
+		<if test="counts==null">
+			<include refid="spitePage" />
+		</if>
+	</sql>
+	<select id="inquery" resultType="com.lxit.crmsystem.vo.ViewOnlyIndent"
+		parameterType="java.util.Map">
+		<include refid="fiall" />
+	</select>
+	<select id="inqueryCount" resultType="int" parameterType="java.util.Map">
+		<include refid="fiall" />
+	</select>
+	<select id="inqueryTy" resultType="com.lxit.crmsystem.vo.ViewIdentType">
+		<![CDATA[
+			SELECT
+				datas.data_id id,
+				datas.data_code code ,
+				datas.data_value value
+			FROM
+				datadictionary datas
+			WHERE
+				datas.data_code = 'INDENT_STATE';
+		]]>
+	</select>
+	<select id="slenderIndent" parameterType="int"
+		resultType="com.lxit.crmsystem.vo.ViewIndentSlender">
+		<![CDATA[
+			SELECT
+				i.indent_id AS id,
+				'普通类型' AS "types",
+				c.client_name AS clientName,
+				i.indent_createTime AS datetime,
+				dat.data_value AS type,
+				i.indent_mod AS model,
+				i.indent_countprice AS countprice,
+				i.indent_yunfei AS yunfei,
+				i.indent_invoice AS invoice
+			FROM
+				indent i,
+				indent_cpp ic,
+				client c,
+				companyproduct ct,
+				datadictionary dat
+			WHERE
+				i.indent_client_id = c.client_id
+			AND ic.indent_id = i.indent_id
+			AND ct.cpp_id = ic.cpp_id
+			AND dat.data_id = i.indent_zhuantai
+			AND i.indent_id=#{id}
+			GROUP BY i.indent_id
+		]]>
+	</select>
+	<select id="shwoObjectPractical" resultType="com.lxit.crmsystem.vo.ViewMonthStatistics" parameterType="java.util.Map">
+		<if test="year!=null and year!=''">
+		<![CDATA[
+			SELECT
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-01"
+				AND m1.indent_createTime < "${year}-02"
+			) AS Jan,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-02"
+				AND m1.indent_createTime < "${year}-03"
+			) AS Feb,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-03"
+				AND m1.indent_createTime < "${year}-04"
+			) AS Mar,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-04"
+				AND m1.indent_createTime < "${year}-05"
+			) AS Apr,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-05"
+				AND m1.indent_createTime < "${year}-06"
+			) AS May,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-06"
+				AND m1.indent_createTime < "${year}-07"
+			) AS Jun,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-07"
+				AND m1.indent_createTime < "${year}-08"
+			) AS Jul,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-08"
+				AND m1.indent_createTime < "${year}-09"
+			) AS Aug,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-09"
+				AND m1.indent_createTime < "${year}-10"
+			) AS Sep,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-10"
+				AND m1.indent_createTime < "${year}-11"
+			) AS Oct,
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-11"
+				AND m1.indent_createTime < "${year}-12"
+			) AS Nov,
+			]]>
+			<if test="yearNext!=null and yearNext!=''">
+			<![CDATA[
+			(
+				SELECT
+					SUM(m1.indent_countprice/10000)
+				FROM
+					indent m1
+				WHERE
+					m1.indent_createTime > "${year}-12"
+				AND m1.indent_createTime < "${yearNext}-01"
+			) AS Decc
+			FROM
+			DUAL
+			]]>
+			</if>
+		</if>
+	</select>
+	<select id="shwoObject" resultType="Double">
+		<![CDATA[
+			SELECT
+				datac.data_value data
+			FROM
+				datadictionary datac
+			WHERE
+				datac.data_code = "EXPECT_PANL"
+		]]>
+	</select>
+	
+	
+	
+</mapper>

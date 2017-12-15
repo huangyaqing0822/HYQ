@@ -1,0 +1,47 @@
+package com.lxit.crmsystem.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lxit.crmsystem.service.ViewService;
+import com.lxit.crmsystem.vo.HistogramOneVo;
+/**
+ * 统计分析模块
+ * @author Administrator
+ *
+ */
+@Controller
+public class ViewAction {
+	@Autowired
+	ViewService viewService;
+	@ResponseBody
+	@RequestMapping("/selectOne")
+	public List<HistogramOneVo> selectViewOne(Integer state){
+		System.out.println("__________状态吗"+state);
+		state = state == null||state==0?1:state;
+		List<HistogramOneVo> list = viewService.histogramone(state);
+		System.out.println(list.size());
+		return list;
+	}
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

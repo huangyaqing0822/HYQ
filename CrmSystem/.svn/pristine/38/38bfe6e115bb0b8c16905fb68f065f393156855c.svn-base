@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.TestDao">
+	<select id="selKh" resultType="com.lxit.crmsystem.entity.Client">
+		SELECT client_id AS "clientId" FROM client;
+	</select>
+	<delete id="updKh" parameterType="com.lxit.crmsystem.entity.Client">
+		update client SET client_state = #{clientState} WHERE client_id = #{clientId}
+	</delete>
+	<select id="selJs" resultType="com.lxit.crmsystem.entity.Role">
+		SELECT r_id AS "roleId" FROM role;
+	</select>
+	<insert id="insertJs" parameterType="com.lxit.crmsystem.entity.Role">
+		INSERT INTO role_nav VALUES(#{roleId},#{departmentId});
+	</insert>
+</mapper>

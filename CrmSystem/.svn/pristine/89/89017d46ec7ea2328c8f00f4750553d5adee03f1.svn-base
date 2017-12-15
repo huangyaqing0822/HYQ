@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lxit.crmsystem.dao.DepartmentDao">
+	<resultMap type="com.lxit.crmsystem.entity.Department" id="departmentMap">
+		<id property="departmentId" column="d_id"/>
+		<result property="departmentFallName" column="d_fallName"/>
+		<result property="departmentConding" column="d_conding"/>
+		<result property="departmentEasyName" column="d_easyName"/>
+		<result property="departmentNid" column="d_nid"/>
+		<result property="departmentIntro" column="d_intro"/>
+		<result property="departmentRemark" column="d_remark"/>
+		<result property="departmentCreateTime" column="d_createTime"/>
+		<result property="departmentUpdateTime" column="d_UpdateTime"/>
+		<result property="departmentStandby" column="d_standby"/>
+		<result property="departmentUpdateSid" column="d_updateSid"/>
+		<result property="staffName" column="staffName"/>
+	</resultMap>
+	
+	<select id="listDepartment" resultMap="departmentMap">
+		SELECT d_id as departmentId,d_fallName as departmentFallName,d_UpdateTime AS departmentUpdateTime,d_remark AS departmentRemark,d_updateSid AS departmentUpdateSid FROM department;
+		
+	</select>
+	<select id="listDepartment2" resultMap="departmentMap">
+	 SELECT d_UpdateTime as departmentUpdateTime,d_id as departmentId,d_fallName as departmentFallName,d_UpdateTime AS departmentUpdateTime,d_remark AS departmentRemark,
+		d_updateSid AS departmentUpdateSid
+		,(SELECT s_name FROM staff where s_id = d_updateSid)as staffName 
+		 FROM department;
+	</select>
+	<insert id="insertDepartment" parameterType="com.lxit.crmsystem.entity.Department" useGeneratedKeys="true" keyProperty="departmentId">
+		INSERT INTO department 
+		(d_fallName,d_conding,d_easyName,d_nid,d_intro,d_remark,d_createTime,d_UpdateTime,d_standby,d_updateSid)
+		 VALUES 
+		(#{departmentFallName},#{departmentConding},#{departmentEasyName},#{departmentNid},#{departmentIntro},#{departmentRemark},#{departmentCreateTime},#{departmentUpdateTime},#{departmentStandby},#{departmentUpdateSid});
+	</insert>
+	
+	<delete id="deleteDepartment" parameterType="int">
+		DELETE FROM department WHERE d_id=#{departmentId};
+	</delete>
+	
+	<select id="listDepartOne" resultMap="departmentMap" parameterType="int">
+	SELECT d_id AS departmentId,d_conding AS departmentConding,d_easyName AS departmentEasyName,d_fallName as departmentFallName,d_nid as departmentNid,d_intro AS departmentIntro,d_remark AS departmentRemark,d_UpdateTime as departmentUpdateTime FROM department WHERE d_id=#{departmentId};
+	</select>
+	
+	<update id="updateDepartment" parameterType="com.lxit.crmsystem.entity.Department">
+		UPDATE department SET 
+		d_nid = #{departmentNid},d_intro=#{departmentIntro},d_remark=#{departmentRemark},d_UpdateTime=#{departmentUpdateTime},d_fallName=#{departmentFallName},d_easyName=#{departmentEasyName}
+		where d_id=#{departmentId};
+	</update>
+</mapper>

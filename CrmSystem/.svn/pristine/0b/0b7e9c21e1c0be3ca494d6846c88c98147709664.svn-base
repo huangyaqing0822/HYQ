@@ -1,0 +1,150 @@
+package com.lxit.crmsystem.controller;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.lxit.crmsystem.entity.DataDictionary;
+import com.lxit.crmsystem.entity.Department;
+import com.lxit.crmsystem.entity.MarketForecast;
+import com.lxit.crmsystem.service.MarketForecastService;
+import com.lxit.crmsystem.util.Pager;
+import com.lxit.crmsystem.util.UploadAction;
+import com.lxit.crmsystem.vo.MarketForecastVo;
+import com.lxit.crmsystem.vo.Staffs;
+
+@Controller
+public class MarketForecastAction {
+	
+	@Autowired
+	MarketForecastService marketForecastService;
+	
+	@ResponseBody
+	@RequestMapping("/getMarketForById")
+	public List<MarketForecastVo> listForecast(int forecastId){
+		
+		MarketForecastVo mar = marketForecastService.getById(forecastId);
+		List<MarketForecastVo> list = new ArrayList<MarketForecastVo>();
+		list.add(mar);
+		//System.out.println("getMarketForById :::::;;; "+list);
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/queryCodeData")
+	public List<DataDictionary> queryCodeData(){
+		List<DataDictionary> list = marketForecastService.queryDateCode();
+		//System.out.println("codeList: "+list);
+		return list;
+	}
+	
+	@ResponseBody
+	@RequestMapping("/pageByLikeForecast")
+	public Map<String, Object> pageByLike(HttpSession session,int page,int rows,String date){
+		//System.out.println("date：　"+date);
+		
+		Pager<MarketForecast> pager = marketForecastService.selectByLike(page, rows, date);
+		System.out.println("sumcount : "+pager.getSumCount()  +  "rows : "+rows  + "page : "+page);
+		//System.out.println("预测。。。。。。。。。。 : "+pager.getData());
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("total", pager.getSumCount());
+		map.put("rows", pager.getData());
+		return map;
+	}
+	
+	@RequestMapping("/forecastPost")
+	public String fileupload(ServletRequest request, @RequestParam("file") MultipartFile file,
+			Model model,HttpSession session,MarketForecast marketForecast) throws IOException {
+		
+		String filename = file.getOriginalFilename();
+		System.out.println("filename : "+filename);
+		String uploadpath = request.getServletContext().getRealPath("/"+filename);
+		System.out.println("uploadpath11111111: "+uploadpath);
+		
+		File fil = new File(uploadpath);
+		//UploadAction.readExcelFile(fil);
+		//System.out.println("---------"+UploadAction.readExcelFile(fil));
+		
+		//FileInputStream in = new FileInputStream("E:/apache-tomcat-7.0.53/webapps/CrmSystemUpload/"+filename);
+		//System.out.println("in : "+in);
+		
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+		Staffs staff =   (Staffs) session.getAttribute("staff");
+		int loginId = staff.getStaffId();
+		
+		String type = file.getContentType();
+		System.out.println("type  :　"+type);//text/plain
+		 
+		System.out.println("marketForecest : "+marketForecast);
+		
+		if (!file.isEmpty()) { 
+			//String ff = saveFile(request, file);
+			String imageurl = saveFile(request, file);
+			//model.addAttribute("imageurl",imageurl);
+			
+			marketForecast.setForecastCreateTime(time);
+			marketForecast.setForecastUpdateTime(time);
+			marketForecast.setForecastUpdateSid(loginId);
+			
+			int count = marketForecastService.addMarketForecast(marketForecast);
+			if(count > 0){
+				System.out.println("marketForecest : "+marketForecast);
+				return "true";
+			}
+			//marketForecast.setForecastText(ff);
+		}else if(type.equals("text/plain")){
+			model.addAttribute("message","文件上传类型必须为.text文件");
+		} else {
+			model.addAttribute("message", "请选择要上传的文件");
+		}
+		
+		
+		return "true";
+	}
+
+	private String saveFile(ServletRequest request, MultipartFile file) {
+		
+		//获取文件的上传路径                                                http://localhost:8080/CrmSystem/
+		String uploadpath = request.getServletContext().getRealPath("../CrmSystemUpload");
+		//获取文件名称
+		String filename = file.getOriginalFilename();
+		//截取文件后缀
+		String fileext = filename.substring(filename.lastIndexOf("."));
+		//生成新的随机文件名称
+		//String newfileName = UUID.randomUUID() + fileext;	
+		String newfileName = "";
+		//文件保存路径
+		File savepath = new File(uploadpath + "/" + fileext);
+		//上传文件
+		try {
+			file.transferTo(savepath);
+		} catch (IllegalStateException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		return "E:/apache-tomcat-7.0.53/webapps/CrmSystemUpload/"+fileext;
+	}
+
+ 
+
+
+}
