@@ -1,0 +1,3 @@
+springmvc.xml   pom.xml 里后面的配置,增加写了缓存
+	
+MemCached缓存，要在pom.xml里面加jar包，springmvc里面要配置相应配置
